@@ -1,0 +1,52 @@
+plugins {
+    id 'groovy'
+    id 'idea'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+    maven {
+        url 'https://repo.jenkins-ci.org/releases/'
+    }
+}
+
+sourceSets {
+    main {
+        groovy.srcDirs = ['vars', 'src']
+        resources.srcDirs = ['resources']
+    }
+    test {
+        groovy.srcDirs = ['test/groovy']
+        resources.srcDirs = ['test/resources']
+    }
+}
+
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:2.5.23'
+    implementation 'com.cloudbees:groovy-cps:1.31'
+
+
+    testImplementation 'org.codehaus.groovy:groovy-all:2.5.14'
+    testImplementation 'org.spockframework:spock-core:2.2-M1-groovy-2.5'
+    testImplementation 'org.spockframework:spock-junit4:2.2-M1-groovy-2.5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testImplementation 'org.yaml:snakeyaml:2.2'
+
+}
+
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    testLogging {
+        //showStandardStreams true
+        exceptionFormat 'FULL'
+        events 'skipped', 'failed'
+    }
+}

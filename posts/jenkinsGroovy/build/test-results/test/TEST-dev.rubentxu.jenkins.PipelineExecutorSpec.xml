@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.rubentxu.jenkins.PipelineExecutorSpec" tests="4" skipped="0" failures="2" errors="0" timestamp="2024-02-14T14:40:41" hostname="VM-Ubuntu" time="0.918">
+  <properties/>
+  <testcase name="test registerService and getService" classname="dev.rubentxu.jenkins.PipelineExecutorSpec" time="0.735"/>
+  <testcase name="test initializeServicesConfiguration" classname="dev.rubentxu.jenkins.PipelineExecutorSpec" time="0.153">
+    <failure message="Too few invocations for:&#10;&#10;1 * serviceMock.initialize('testValue')   (0 invocations)&#10;&#10;Unmatched invocations (ordered by similarity):&#10;&#10;1 * serviceMock.initialize(['testService':'testValue'])&#10;One or more arguments(s) didn't match:&#10;0: argument == expected&#10;   |        |  |&#10;   |        |  testValue&#10;   |        false&#10;   [testService:testValue]&#10;&#10;" type="org.spockframework.mock.TooFewInvocationsError">Too few invocations for:
+
+1 * serviceMock.initialize('testValue')   (0 invocations)
+
+Unmatched invocations (ordered by similarity):
+
+1 * serviceMock.initialize(['testService':'testValue'])
+One or more arguments(s) didn't match:
+0: argument == expected
+   |        |  |
+   |        |  testValue
+   |        false
+   [testService:testValue]
+
+
+	at app//org.spockframework.mock.runtime.InteractionScope.verifyInteractions(InteractionScope.java:104)
+	at app//org.spockframework.mock.runtime.MockController.leaveScope(MockController.java:77)
+	at dev.rubentxu.jenkins.PipelineExecutorSpec.test initializeServicesConfiguration(PipelineExecutorSpec.groovy:39)
+</failure>
+  </testcase>
+  <testcase name="test addSkipStage and getSkipStages" classname="dev.rubentxu.jenkins.PipelineExecutorSpec" time="0.005"/>
+  <testcase name="test injectEnvironmentVariables" classname="dev.rubentxu.jenkins.PipelineExecutorSpec" time="0.021">
+    <failure message="groovy.lang.MissingMethodException: No signature of method: dev.rubentxu.jenkins.Logger.debug() is applicable for argument types: (LinkedHashMap) values: [[testVar:testValue]]&#10;Possible solutions: debug(java.lang.String), dump(), getAt(java.lang.String), each(groovy.lang.Closure)" type="groovy.lang.MissingMethodException">groovy.lang.MissingMethodException: No signature of method: dev.rubentxu.jenkins.Logger.debug() is applicable for argument types: (LinkedHashMap) values: [[testVar:testValue]]
+Possible solutions: debug(java.lang.String), dump(), getAt(java.lang.String), each(groovy.lang.Closure)
+	at app//dev.rubentxu.jenkins.PipelineExecutor.injectEnvironmentVariables(PipelineExecutor.groovy:52)
+	at dev.rubentxu.jenkins.PipelineExecutorSpec.test injectEnvironmentVariables(PipelineExecutorSpec.groovy:62)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
