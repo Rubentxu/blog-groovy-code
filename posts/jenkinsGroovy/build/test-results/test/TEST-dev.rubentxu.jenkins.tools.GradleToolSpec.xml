@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.rubentxu.jenkins.tools.GradleToolSpec" tests="5" skipped="0" failures="5" errors="0" timestamp="2024-02-15T17:33:25" hostname="VM-Ubuntu" time="0.872">
+  <properties/>
+  <testcase name="test build" classname="dev.rubentxu.jenkins.tools.GradleToolSpec" time="0.815">
+    <failure message="java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null" type="java.lang.NullPointerException">java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null
+	at java.base/java.nio.file.Path.of(Path.java:197)
+	at java.base/java.nio.file.Paths.get(Paths.java:98)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTaskWithCredentials(GradleTool.groovy:91)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:87)
+	at dev.rubentxu.jenkins.tools.GradleTool.build(GradleTool.groovy:29)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test build(GradleToolSpec.groovy:16)
+</failure>
+  </testcase>
+  <testcase name="test publish" classname="dev.rubentxu.jenkins.tools.GradleToolSpec" time="0.043">
+    <failure message="java.lang.NullPointerException: Cannot invoke method readProperties() on null object" type="java.lang.NullPointerException">java.lang.NullPointerException: Cannot invoke method readProperties() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.readFileDefinition(GradleTool.groovy:56)
+	at dev.rubentxu.jenkins.tools.GradleTool.publish(GradleTool.groovy:35)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test publish(GradleToolSpec.groovy:29)
+</failure>
+  </testcase>
+  <testcase name="test readFileDefinition" classname="dev.rubentxu.jenkins.tools.GradleToolSpec" time="0.002">
+    <failure message="java.lang.NullPointerException: Cannot invoke method readProperties() on null object" type="java.lang.NullPointerException">java.lang.NullPointerException: Cannot invoke method readProperties() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.readFileDefinition(GradleTool.groovy:56)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test readFileDefinition(GradleToolSpec.groovy:41)
+</failure>
+  </testcase>
+  <testcase name="test writeVersion" classname="dev.rubentxu.jenkins.tools.GradleToolSpec" time="0.004">
+    <failure message="java.lang.NullPointerException: Cannot invoke method sh() on null object" type="java.lang.NullPointerException">java.lang.NullPointerException: Cannot invoke method sh() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.writeVersion(GradleTool.groovy:71)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test writeVersion(GradleToolSpec.groovy:55)
+</failure>
+  </testcase>
+  <testcase name="test executeTask" classname="dev.rubentxu.jenkins.tools.GradleToolSpec" time="0.003">
+    <failure message="java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null" type="java.lang.NullPointerException">java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null
+	at java.base/java.nio.file.Path.of(Path.java:197)
+	at java.base/java.nio.file.Paths.get(Paths.java:98)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTaskWithCredentials(GradleTool.groovy:91)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:87)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:82)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test executeTask(GradleToolSpec.groovy:69)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

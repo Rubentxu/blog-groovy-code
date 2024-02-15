@@ -10,7 +10,6 @@ interface IPipeline extends IServiceLocator {
 
     void injectEnvironmentVariables(Map<String, String> envVars)
 
-    Map<String, Object> getPipelineConfig()
-
+    IConfigClient getConfigClient()
 
 }

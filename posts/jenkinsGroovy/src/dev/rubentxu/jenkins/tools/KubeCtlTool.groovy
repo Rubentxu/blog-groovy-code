@@ -2,6 +2,7 @@ package dev.rubentxu.jenkins.tools
 
 import com.cloudbees.groovy.cps.NonCPS
 import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.interfaces.IPipeline
 import dev.rubentxu.jenkins.tools.interfaces.IKubeCtlTool
 
@@ -14,7 +15,7 @@ class KubeCtlTool extends StepsExecutor implements IKubeCtlTool {
 
     KubeCtlTool(IPipeline pipeline) {
         super(pipeline)
-        initialize(pipeline.getPipelineConfig())
+        initialize(pipeline.getConfigClient())
     }
 
     @Override
@@ -44,9 +45,9 @@ class KubeCtlTool extends StepsExecutor implements IKubeCtlTool {
 
     @NonCPS
     @Override
-    void initialize(Map configuration) {
-        kubeconfig = configuration.get('kubectl.kubeconfig')
-        defaultNamespace = configuration.get('kubectl.defaultNamespace')
+    void initialize(IConfigClient configClient) {
+        kubeconfig = configClient.get('kubectl.kubeconfig')
+        defaultNamespace = configClient.get('kubectl.defaultNamespace')
     }
 
 

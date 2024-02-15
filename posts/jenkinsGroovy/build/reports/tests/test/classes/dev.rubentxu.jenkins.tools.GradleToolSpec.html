@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - GradleToolSpec</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>GradleToolSpec</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/dev.rubentxu.jenkins.tools.html">dev.rubentxu.jenkins.tools</a> &gt; GradleToolSpec</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">5</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">5</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.867s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox failures" id="successRate">
+<div class="percent">0%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Failed tests</a>
+</li>
+<li>
+<a href="#tab1">Tests</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Failed tests</h2>
+<div class="test">
+<a name="test build"></a>
+<h3 class="failures">test build</h3>
+<span class="code">
+<pre>java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null
+	at java.base/java.nio.file.Path.of(Path.java:197)
+	at java.base/java.nio.file.Paths.get(Paths.java:98)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTaskWithCredentials(GradleTool.groovy:91)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:87)
+	at dev.rubentxu.jenkins.tools.GradleTool.build(GradleTool.groovy:29)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test build(GradleToolSpec.groovy:16)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="test executeTask"></a>
+<h3 class="failures">test executeTask</h3>
+<span class="code">
+<pre>java.lang.NullPointerException: Cannot invoke &quot;java.net.URI.getScheme()&quot; because &quot;uri&quot; is null
+	at java.base/java.nio.file.Path.of(Path.java:197)
+	at java.base/java.nio.file.Paths.get(Paths.java:98)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTaskWithCredentials(GradleTool.groovy:91)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:87)
+	at dev.rubentxu.jenkins.tools.GradleTool.executeTask(GradleTool.groovy:82)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test executeTask(GradleToolSpec.groovy:69)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="test publish"></a>
+<h3 class="failures">test publish</h3>
+<span class="code">
+<pre>java.lang.NullPointerException: Cannot invoke method readProperties() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.readFileDefinition(GradleTool.groovy:56)
+	at dev.rubentxu.jenkins.tools.GradleTool.publish(GradleTool.groovy:35)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test publish(GradleToolSpec.groovy:29)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="test readFileDefinition"></a>
+<h3 class="failures">test readFileDefinition</h3>
+<span class="code">
+<pre>java.lang.NullPointerException: Cannot invoke method readProperties() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.readFileDefinition(GradleTool.groovy:56)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test readFileDefinition(GradleToolSpec.groovy:41)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="test writeVersion"></a>
+<h3 class="failures">test writeVersion</h3>
+<span class="code">
+<pre>java.lang.NullPointerException: Cannot invoke method sh() on null object
+	at dev.rubentxu.jenkins.tools.GradleTool.writeVersion(GradleTool.groovy:71)
+	at dev.rubentxu.jenkins.tools.GradleToolSpec.test writeVersion(GradleToolSpec.groovy:55)
+</pre>
+</span>
+</div>
+</div>
+<div id="tab1" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="failures">test build</td>
+<td class="failures">0.815s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">test executeTask</td>
+<td class="failures">0.003s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">test publish</td>
+<td class="failures">0.043s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">test readFileDefinition</td>
+<td class="failures">0.002s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">test writeVersion</td>
+<td class="failures">0.004s</td>
+<td class="failures">failed</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.4</a> at 15 feb 2024 18:33:26</p>
+</div>
+</div>
+</body>
+</html>

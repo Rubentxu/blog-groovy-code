@@ -1,10 +1,10 @@
 package dev.rubentxu.jenkins.interfaces
 
+import dev.rubentxu.jenkins.logger.LogLevel
+
 interface ILogger {
 
-    void setLogLevel(String level)
-
-    void log(String level, String message)
+    void setLogLevel(LogLevel level)
 
     void info(String message)
 
@@ -16,12 +16,12 @@ interface ILogger {
 
     void fatal(String message)
 
-    void whenDebug(Closure body)
+    void executeWhenDebug(Closure body)
 
-    def <T> void prettyPrint(String level, T obj)
+    def <T> void printPrettyLog(LogLevel level, T obj)
 
-    void prettyMessages(String level, List<String> messages)
+    void logPrettyMessages(LogLevel level, List<String> messages)
 
-    void prettyError(List<String> msgs)
+    void logPrettyError(List<String> msgs)
 
 }

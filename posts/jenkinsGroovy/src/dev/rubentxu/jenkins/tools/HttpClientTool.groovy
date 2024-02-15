@@ -1,6 +1,7 @@
 package dev.rubentxu.jenkins.tools
 
 import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.tools.interfaces.IHttpClient
 import dev.rubentxu.jenkins.interfaces.IPipeline
 import groovy.json.JsonSlurper
@@ -17,9 +18,13 @@ import java.nio.file.Paths
 class HttpClientTool extends StepsExecutor implements IHttpClient {
 
     private final HttpClient client
+    private Path clientCertPath
+    private Boolean ignoreSslErrors
+    private Integer timeout
 
     HttpClientTool(IPipeline pipeline) {
         super(pipeline)
+        initialize(pipeline.getConfigClient())
     }
 
     @Override
@@ -156,14 +161,9 @@ class HttpClientTool extends StepsExecutor implements IHttpClient {
     }
 
     @Override
-    void initialize(Map configuration) {
-
+    void initialize(IConfigClient configClient) {
+        clientCertPath = configClient.get('httpClient.clientCertPath')
+        ignoreSslErrors = configClient.get('httpClient.ignoreSslErrors')
+        timeout = configClient.get('httpClient.timeout')
     }
-
-    @Override
-    void parse(Map configuration) {
-
-    }
-
-
 }

@@ -30,13 +30,13 @@ class PipelineExecutor implements IPipeline {
 
     @Override
     IService getService(String name) {
-        return services.containsKey(name) ? services[name].call(pipeline) : null
+        return services.containsKey(name) ? services[name].create(this) : null
     }
 
     @Override
-    void initializeServicesConfiguration(Map configuration) {
-        services.each { name, serviceClosure ->
-            serviceClosure.create(this).initialize(configuration)
+    void initializeServices(IConfigClient configClient) {
+        services.each { name, factory ->
+            factory.create(this).initialize(configClient)
         }
     }
 
@@ -53,13 +53,14 @@ class PipelineExecutor implements IPipeline {
     @Override
     void injectEnvironmentVariables(Map<String, String> envVars) {
         logger.debug('Custom environment variables to be inserted in pipeline')
-        logger.debug(envVars)
+        logger.debug(envVars.toString())
         def jenkinsEnvVars = steps.env
         envVars.each { k, v -> jenkinsEnvVars[k] = v }
     }
 
     @Override
-    Map<String, Object> getPipelineConfig() {
-        return null
+    IConfigClient getConfigClient() {
+        return configClient
     }
+
 }

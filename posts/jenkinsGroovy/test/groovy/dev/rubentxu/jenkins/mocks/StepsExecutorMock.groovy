@@ -10,11 +10,21 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 
-
+//@CompileStatic
 class StepsExecutorMock extends Script {
 
+
     Map<String, Object> dynamicProps
-    Map<String, List<Map>> callTraces
+
+    // Almacena los contadores de invocaciones de los métodos
+    Map<String, Integer> invocationCounts
+
+
+    private MethodInvocationRecorder recorder = new MethodInvocationRecorder()
+
+    MethodInvocationRecorder validate() {
+        return recorder
+    }
 
     StepsExecutorMock() {
         dynamicProps = [
@@ -57,12 +67,12 @@ class StepsExecutorMock extends Script {
                 error             : { String message -> throw new TestException(message) },
                 catchError        : this.&defaultMethodClosure,
         ]
-        callTraces = new ConcurrentHashMap()
+
+        invocationCounts = new ConcurrentHashMap()
+
     }
 
-    List findCallTracesByMethod(String methodName) {
-        return callTraces[methodName] ?: []
-    }
+
 
     def defaultMethodClosure(ignored, Closure body) {
         body.delegate = this
@@ -208,11 +218,6 @@ class StepsExecutorMock extends Script {
         return getClass().getClassLoader().getResource(path.toString()) != null ? Boolean.TRUE : Boolean.FALSE
     }
 
-    @Override
-    Object run() {
-        callTraces = new ConcurrentHashMap()
-        return null
-    }
 
     Object sleep(long arg) {
         // To simulate steps.sleep(time) in a pipeline
@@ -233,15 +238,26 @@ class StepsExecutorMock extends Script {
         dynamicProps[propName] = val
     }
 
+    @Override
+    Object run() {
+        return null
+    }
+
     def methodMissing(String methodName, args) {
-        if (!this.callTraces.containsKey(methodName)) {
-            this.callTraces[methodName] = []
+        // Incrementa el contador de invocaciones del método
+        if (!invocationCounts.containsKey(methodName)) {
+            invocationCounts[methodName] = 0
         }
-        this.callTraces[methodName] << [args: args, invocationNumber: this.callTraces[methodName].size() + 1 as Integer]
+        invocationCounts[methodName] = invocationCounts[methodName] + 1
 
         def prop = dynamicProps[methodName]
         if (prop instanceof Closure) {
-            return prop(*args)
+            def result = prop(*args)
+            if (!this.recorder.containsKey(methodName)) {
+                this.recorder.createList(methodName)
+            }
+            this.recorder.addMock(methodName, new MethodMock(methodName, args.toList(), result))
+            return result
         }
         throw new TestException("\u001B[1;31m************ Method Missing with name $methodName and args $args **************\u001B[0m")
     }
@@ -249,5 +265,23 @@ class StepsExecutorMock extends Script {
     String getResourceContent(String file) {
         return getClass().getClassLoader().getResource(file.replaceAll('\\\\', '/'))?.text
     }
+
+//    StepsExecutorMock verifyTotalInvocations(String methodName, int totalInvocations) {
+//        def numInvocations = invocationCounts[methodName]
+//        assert numInvocations == totalInvocations:
+//                "Step ${methodName} expected invocations ${totalInvocations} but was called ${numInvocations}"
+//        return this
+//    }
+//
+//    MethodMock verifyInvocation(String methodName, int pos = 0) {
+//        def calls = verify.get(methodName)
+//        def result = calls.getAt(pos)
+//        assert result != null:
+//                "Step ${methodName} was not called ${pos} times"
+//        return result
+//
+//    }
+
+
 
 }

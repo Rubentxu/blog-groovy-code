@@ -1,64 +1,58 @@
 package dev.rubentxu.jenkins
 
-import dev.rubentxu.jenkins.interfaces.ILogger
+
 import dev.rubentxu.jenkins.interfaces.IService
-import dev.rubentxu.jenkins.mocks.StepsExecutorMock
-import spock.lang.Specification
+import dev.rubentxu.jenkins.mocks.TestContext
+import dev.rubentxu.jenkins.cdi.ServiceFactory
 
-//@CompileStatic
-class PipelineExecutorSpec extends Specification {
+class PipelineExecutorSpec extends TestContext {
 
-    protected StepsExecutorMock steps
-    protected ILogger loggerSpy
-
-    void setup() {
-        steps = new StepsExecutorMock()
-        loggerSpy = Spy(new Logger(steps))
-    }
 
     def "test registerService and getService"() {
         setup:
-        def pipelineExecutor = new PipelineExecutor(steps, loggerSpy)
+        def pipeline = this.createPipeline()
 
         when:
-        pipelineExecutor.registerService('testService', { -> return Mock(IService) })
+        pipeline.registerService('testService', ServiceFactory.from { return Mock(IService) })
+        def service = pipeline.getService('testService')
 
         then:
-        pipelineExecutor.getService('testService') instanceof IService
+        service instanceof IService
 
     }
 
     def "test initializeServicesConfiguration"() {
         setup:
-        def pipelineExecutor = new PipelineExecutor(steps, loggerSpy)
+        def pipeline = this.createPipeline()
         def serviceMock = Mock(IService)
-        pipelineExecutor.registerService('testService', { -> return serviceMock })
+        pipeline.registerService('testService', ServiceFactory.from { return serviceMock })
+        configClient.setConfig([testService: 'testValue'])
 
         when:
-        pipelineExecutor.initializeServicesConfiguration([testService: 'testValue'])
+        pipeline.initializeServices(configClient)
 
         then:
-        1 * serviceMock.initialize('testValue')
+        1 * serviceMock.initialize(configClient)
     }
 
     def "test addSkipStage and getSkipStages"() {
         setup:
-        def pipelineExecutor = new PipelineExecutor(steps, loggerSpy)
+        def pipeline = this.createPipeline()
 
         when:
-        pipelineExecutor.addSkipStage('testStage')
+        pipeline.addSkipStage('testStage')
 
         then:
-        pipelineExecutor.getSkipStages() == ['testStage']
+        pipeline.getSkipStages() == ['testStage']
     }
 
     def "test injectEnvironmentVariables"() {
         setup:
-        def pipelineExecutor = new PipelineExecutor(steps, loggerSpy)
+        def pipeline = this.createPipeline()
         steps.env = [:]
 
         when:
-        pipelineExecutor.injectEnvironmentVariables([testVar: 'testValue'])
+        pipeline.injectEnvironmentVariables([testVar: 'testValue'])
 
         then:
         steps.env.testVar == 'testValue'

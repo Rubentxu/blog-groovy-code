@@ -49,4 +49,5 @@ tasks.withType(Test) {
         exceptionFormat 'FULL'
         events 'skipped', 'failed'
     }
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }

@@ -1,10 +1,15 @@
 package dev.rubentxu.jenkins
 
 import dev.rubentxu.jenkins.interfaces.ILogger
+import dev.rubentxu.jenkins.interfaces.IPipeline
 import dev.rubentxu.jenkins.interfaces.IStageExecutor
 
 
 abstract class StageExecutor extends StepsExecutor implements IStageExecutor {
+
+    StageExecutor(IPipeline pipeline) {
+        super(pipeline)
+    }
 
     @Override
     def stage(String name, Closure body) {
@@ -40,7 +45,7 @@ abstract class StageExecutor extends StepsExecutor implements IStageExecutor {
         List lines = ["Error in Stage $name", ex.toString(), ex.getMessage()]
         lines.add('----------------------------------------')
         lines.addAll(filterStackTrace(ex).join("\n"))
-        logger.prettyError(lines)
+        logger.logPrettyError(lines)
     }
 
 

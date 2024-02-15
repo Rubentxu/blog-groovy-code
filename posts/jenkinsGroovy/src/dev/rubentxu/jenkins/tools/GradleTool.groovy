@@ -2,6 +2,7 @@ package dev.rubentxu.jenkins.tools
 
 import com.cloudbees.groovy.cps.NonCPS
 import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.interfaces.IPipeline
 import dev.rubentxu.jenkins.tools.interfaces.IGradleTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
@@ -20,7 +21,7 @@ class GradleTool extends StepsExecutor implements IGradleTool {
 
     GradleTool(IPipeline pipeline) {
         super(pipeline)
-        initialize(pipeline.getPipelineConfig())
+        initialize(pipeline.getConfigClient())
     }
 
     @Override
@@ -104,14 +105,12 @@ class GradleTool extends StepsExecutor implements IGradleTool {
 
     @NonCPS
     @Override
-    void initialize(Map configuration) {
-        def get = configuration.&get
-        this.credentialsId = get('gradle.repository.credentialsId')
-        this.buildGradlePath = get('gradle.buildGradlePath')
-        this.gradlePropertiesFile = get('gradle.gradlePropertiesPath')
-        this.debugMode = get('gradle.debug')
-        this.useWrapper = get('gradle.useWrapper')
+    void initialize(IConfigClient configClient) {
+        this.credentialsId = configClient.get('gradle.repository.credentialsId')
+        this.buildGradlePath = configClient.get('gradle.buildGradlePath')
+        this.gradlePropertiesFile = configClient.get('gradle.gradlePropertiesPath')
+        this.debugMode = configClient.get('gradle.debug')
+        this.useWrapper = configClient.get('gradle.useWrapper')
+
     }
-
-
 }

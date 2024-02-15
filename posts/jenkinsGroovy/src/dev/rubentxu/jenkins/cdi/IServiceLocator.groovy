@@ -1,5 +1,6 @@
 package dev.rubentxu.jenkins.cdi
 
+import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.interfaces.IService
 
 interface IServiceLocator extends Serializable {
@@ -8,5 +9,5 @@ interface IServiceLocator extends Serializable {
 
     void registerService(String name, IServiceFactory factory)
 
-    void initializeServicesConfiguration(Map configuration)
+    void initializeServices(IConfigClient configClient)
 }
