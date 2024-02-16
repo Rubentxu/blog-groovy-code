@@ -1,9 +1,9 @@
 package dev.rubentxu.jenkins.tools
 
-import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.Steps
 import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.tools.interfaces.IHttpClient
-import dev.rubentxu.jenkins.interfaces.IPipeline
+import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import groovy.json.JsonSlurper
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -15,14 +15,14 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class HttpClientTool extends StepsExecutor implements IHttpClient {
+class HttpClientTool extends Steps implements IHttpClient {
 
     private final HttpClient client
     private Path clientCertPath
     private Boolean ignoreSslErrors
     private Integer timeout
 
-    HttpClientTool(IPipeline pipeline) {
+    HttpClientTool(IPipelineContext pipeline) {
         super(pipeline)
         initialize(pipeline.getConfigClient())
     }

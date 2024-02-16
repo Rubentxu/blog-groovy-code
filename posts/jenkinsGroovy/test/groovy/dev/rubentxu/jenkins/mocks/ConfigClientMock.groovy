@@ -5,8 +5,8 @@ import dev.rubentxu.jenkins.interfaces.IConfigClient
 class ConfigClientMock implements IConfigClient {
     private Map<String, String> config
 
-    ConfigClientMock() {
-        this.config = [:]
+    ConfigClientMock(Map<String, String> config = [:]) {
+        this.config = config
     }
 
     @Override

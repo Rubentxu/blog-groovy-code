@@ -1,6 +1,6 @@
 package dev.rubentxu.jenkins.cdi
 
-import dev.rubentxu.jenkins.interfaces.IPipeline
+import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.interfaces.IService
 
 class ServiceFactory implements IServiceFactory {
@@ -11,7 +11,7 @@ class ServiceFactory implements IServiceFactory {
     }
 
     @Override
-    IService create(IPipeline pipeline) {
+    IService create(IPipelineContext pipeline) {
         return closure.call(pipeline)
     }
 

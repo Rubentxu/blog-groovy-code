@@ -1,9 +1,9 @@
 package dev.rubentxu.jenkins.tools
 
 import com.cloudbees.groovy.cps.NonCPS
-import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.Steps
 import dev.rubentxu.jenkins.interfaces.IConfigClient
-import dev.rubentxu.jenkins.interfaces.IPipeline
+import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.tools.interfaces.IGradleTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleArtifact
@@ -11,7 +11,7 @@ import dev.rubentxu.jenkins.vo.resources.gradle.GradleFileDefinition
 
 import java.nio.file.Paths
 
-class GradleTool extends StepsExecutor implements IGradleTool {
+class GradleTool extends Steps implements IGradleTool {
 
     private String credentialsId
     private String buildGradlePath
@@ -19,7 +19,7 @@ class GradleTool extends StepsExecutor implements IGradleTool {
     private Boolean debugMode
     private Boolean useWrapper
 
-    GradleTool(IPipeline pipeline) {
+    GradleTool(IPipelineContext pipeline) {
         super(pipeline)
         initialize(pipeline.getConfigClient())
     }

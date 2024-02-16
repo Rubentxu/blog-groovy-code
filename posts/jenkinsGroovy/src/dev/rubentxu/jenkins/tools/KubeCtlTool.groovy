@@ -1,19 +1,19 @@
 package dev.rubentxu.jenkins.tools
 
 import com.cloudbees.groovy.cps.NonCPS
-import dev.rubentxu.jenkins.StepsExecutor
+import dev.rubentxu.jenkins.Steps
 import dev.rubentxu.jenkins.interfaces.IConfigClient
-import dev.rubentxu.jenkins.interfaces.IPipeline
+import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.tools.interfaces.IKubeCtlTool
 
 
-class KubeCtlTool extends StepsExecutor implements IKubeCtlTool {
+class KubeCtlTool extends Steps implements IKubeCtlTool {
 
     public static final String KUBECTL = "kubectl"
     private String kubeconfig
     private String defaultNamespace
 
-    KubeCtlTool(IPipeline pipeline) {
+    KubeCtlTool(IPipelineContext pipeline) {
         super(pipeline)
         initialize(pipeline.getConfigClient())
     }

@@ -1,5 +1,6 @@
 package dev.rubentxu.jenkins.mocks
 
+import dev.rubentxu.jenkins.mocks.credentials.ProviderCredentialsMock
 import groovy.io.FileType
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -13,14 +14,10 @@ import java.util.concurrent.ConcurrentHashMap
 //@CompileStatic
 class StepsExecutorMock extends Script {
 
-
     Map<String, Object> dynamicProps
-
-    // Almacena los contadores de invocaciones de los métodos
     Map<String, Integer> invocationCounts
-
-
     private MethodInvocationRecorder recorder = new MethodInvocationRecorder()
+    ProviderCredentialsMock credentialsProvider
 
     MethodInvocationRecorder validate() {
         return recorder
@@ -69,9 +66,17 @@ class StepsExecutorMock extends Script {
         ]
 
         invocationCounts = new ConcurrentHashMap()
+        credentialsProvider = new ProviderCredentialsMock()
 
     }
 
+    def withCredentialsMock(Map args, Closure body) {
+        def credentialsId = args.credentialsId
+        def credentials = credentialsProvider.getCredentials(credentialsId)
+        dynamicProps.env['CREDENTIALS'] = credentials
+        body.delegate = this
+        return body()
+    }
 
 
     def defaultMethodClosure(ignored, Closure body) {
@@ -256,7 +261,7 @@ class StepsExecutorMock extends Script {
             if (!this.recorder.containsKey(methodName)) {
                 this.recorder.createList(methodName)
             }
-            this.recorder.addMock(methodName, new MethodMock(methodName, args.toList(), result))
+            this.recorder.addMock(methodName, new MethodMock(methodName, args, result))
             return result
         }
         throw new TestException("\u001B[1;31m************ Method Missing with name $methodName and args $args **************\u001B[0m")
