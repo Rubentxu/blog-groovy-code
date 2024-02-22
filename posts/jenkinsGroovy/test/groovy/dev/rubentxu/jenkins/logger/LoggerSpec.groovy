@@ -1,13 +1,13 @@
 package dev.rubentxu.jenkins.logger
 
-import dev.rubentxu.jenkins.mocks.StepsExecutorMock
+import dev.rubentxu.jenkins.mocks.StepsMock
 import spock.lang.Specification
 
 class LoggerSpec extends Specification {
 
     def "test logMessage"() {
         given:
-        def steps = new StepsExecutorMock()
+        def steps = new StepsMock()
         def logger = new Logger(steps)
         def expectedMessage = "\u001B[32m\u001B[0m[INFO] Test message\u001B[0m"
 
@@ -21,7 +21,7 @@ class LoggerSpec extends Specification {
 
     def "test isLoggable"() {
         given:
-        def steps = new StepsExecutorMock()
+        def steps = new StepsMock()
         def logger = new Logger(steps)
 
         expect:
@@ -31,7 +31,7 @@ class LoggerSpec extends Specification {
 
     def "test info"() {
         given:
-        def steps = new StepsExecutorMock()
+        def steps = new StepsMock()
         def logger = new Logger(steps)
 
         when:
@@ -45,7 +45,7 @@ class LoggerSpec extends Specification {
 
     def "test printPrettyLog"() {
         given:
-        def steps = new StepsExecutorMock()
+        def steps = new StepsMock()
         def logger = new Logger(steps)
 
         when:

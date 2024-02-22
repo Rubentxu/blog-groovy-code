@@ -2,7 +2,7 @@ package dev.rubentxu.jenkins.mocks
 
 class MethodInvocationRecorder {
 
-    Map<String, List<MethodMock>> methodCalls = [:]
+    Map<String, List<MethodInvocation>> methodCalls = [:]
 
     Boolean containsKey(String methodName) {
         return methodCalls.containsKey(methodName)
@@ -14,14 +14,15 @@ class MethodInvocationRecorder {
 
         return new Object() {
             def getAt(int pos) {
-                return verifyInvocation(methodName, pos).verifyArgs(argumentList)
+                def methodMock = verifyInvocation(methodName, pos)
+                return methodMock.verifyArgs(argumentList)
             }
         }
 
     }
 
-    private MethodMock verifyInvocation(String methodName, int pos = 0) {
-        Integer posIndexed = pos > 0 ? pos-1 : pos
+    private MethodInvocation verifyInvocation(String methodName, int pos = 0) {
+        Integer posIndexed = pos > 0 ? pos - 1 : pos
         def calls = methodCalls[methodName] ?: []
         def result = calls.getAt(posIndexed)
         assert result != null:
@@ -34,12 +35,13 @@ class MethodInvocationRecorder {
         methodCalls[methodName] = []
     }
 
-    void addMock(String methodName, MethodMock methodMock) {
-        methodCalls[methodName] << methodMock
+    void addMock(String methodName, MethodInvocation methodInvocation) {
+        List<MethodInvocation> invocations = methodCalls[methodName]
+        invocations.add(methodInvocation)
     }
 
-    def MethodMock get(String methodName) {
-        return  methodCalls[methodName]
+    def PositionalArgsMethodInvocation get(String methodName) {
+        return methodCalls[methodName]
     }
 
 }

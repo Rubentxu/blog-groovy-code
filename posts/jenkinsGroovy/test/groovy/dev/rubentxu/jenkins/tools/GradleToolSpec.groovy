@@ -20,9 +20,9 @@ class GradleToolSpec extends TestContext {
     def "test build"() {
         given:
         def pipeline = this.createPipeline(gradleProperties)
-        steps.credentialsProvider.setCredentials([
-            credentialsId: new UsernamePasswordCredentials(CredentialsScope.GLOBAL, 'credentialsId', null, 'user', '
-             ])
+        steps.credentialsProviderMock.setCredentials([
+            credentialsId: new UsernamePasswordCredentials('credentialsId', null, 'user',
+             )])
 
         def gradleTool = new GradleTool(pipeline)
 

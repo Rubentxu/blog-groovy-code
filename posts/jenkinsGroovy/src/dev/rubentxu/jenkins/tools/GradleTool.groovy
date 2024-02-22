@@ -8,6 +8,7 @@ import dev.rubentxu.jenkins.tools.interfaces.IGradleTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleArtifact
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleFileDefinition
+import dev.rubentxu.jenkins.vo.resources.maven.MavenArtifact
 
 import java.nio.file.Paths
 
@@ -21,60 +22,58 @@ class GradleTool extends Steps implements IGradleTool {
 
     GradleTool(IPipelineContext pipeline) {
         super(pipeline)
-        initialize(pipeline.getConfigClient())
     }
 
     @Override
-    void build() {
-        executeTask('clean build', ['-x', 'test'], false)
-    }
-
-    @Override
-    void publish(ArtifactRepository repository) {
-        def repoUrl = "${repository.baseUrl}/${repository.name}"
+    GradleArtifact build(List<String> options) {
+        executeTask('clean build', ['-x', 'test'] + options, false)
         GradleFileDefinition definition = readFileDefinition()
-        def options = [
-            "-Pversion=${definition.version}",
-            "-Prepository_repo_url=${repoUrl}"
-        ]
-        executeTaskWithCredentials('publish', options, repository.credentialsId, false)
-
         def artifactRef = "${definition.group.replaceAll('\\.', '/')}/${definition.name}/${definition.version}"
-        pipeline.addOrUpdateResource(
-            new GradleArtifact(
+
+        new GradleArtifact(
                 id: "${definition.group}:${definition.name}:${definition.version}",
                 name: definition.name,
                 domain: definition.group,
                 version: definition.version,
                 url: "${repoUrl}/${artifactRef}"
-            )
         )
+
+    }
+
+
+    @Override
+    void publish(ArtifactRepository repository, GradleArtifact artifact) {
+        def repoUrl = "${repository.baseUrl}/${repository.name}"
+
+        def options = [
+                "-Pversion=${artifact.version}",
+                "-Prepository_repo_url=${repoUrl}"
+        ]
+        executeTaskWithCredentials('publish', options, repository.credentialsId, false)
+
+
     }
 
     @Override
     GradleFileDefinition readFileDefinition() {
-        def gradleProperties = steps.readProperties(file: gradlePropertiesFile)
-        def name = gradleProperties.name
-        def group = gradleProperties.group
-        def fileDefinition = new GradleFileDefinition(
-                id: "${group}:${name}",
-                name: name,
-                group: group,
-                version: gradleProperties?.version?.replaceAll('-SNAPSHOT', '') ?: '0.0.0'
+        def gradleProperties = steps.readProperties(file: this.gradlePropertiesFile)
+        return new GradleFileDefinition(
+                id: "${gradleProperties.group}:${gradleProperties.name}",
+                name: gradleProperties.name,
+                group:  gradleProperties.group,
+                version: gradleProperties?.version?: '0.0.0'
         )
-        pipeline.addOrUpdateResource(fileDefinition)
-        return fileDefinition
+
     }
 
     @Override
-    void writeVersion(String overrideVersion) {
+    GradleFileDefinition writeVersion(String overrideVersion) {
         if (steps.sh(returnStatus: true, script: "gradle tasks --all | grep -i updateVersion") == 0) {
             executeTask('updateVersion', ["-PnewVersion='${overrideVersion}'"])
         } else {
             steps.sh """sed -i -r '/^version( ?)=/s/[0-9]+.*/${overrideVersion}/g' ${gradlePropertiesFile}"""
         }
-        pipeline.releaseVersion.version = overrideVersion
-        readFileDefinition()
+        return readFileDefinition()
     }
 
     @Override

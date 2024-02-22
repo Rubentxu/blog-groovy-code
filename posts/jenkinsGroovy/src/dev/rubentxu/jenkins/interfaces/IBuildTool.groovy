@@ -1,15 +1,18 @@
 package dev.rubentxu.jenkins.interfaces
 
+import dev.rubentxu.jenkins.vo.resources.Artifact
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
+import dev.rubentxu.jenkins.vo.resources.FileDefinition
 import dev.rubentxu.jenkins.vo.resources.Resource
 
-interface IBuildTool extends ITool {
 
-    void build()
+interface IBuildTool<A extends Artifact, F extends FileDefinition> extends ITool {
 
-    void publish(ArtifactRepository repository)
+    A build(List<String> options)
 
-    def <T extends Resource> T readFileDefinition()
+    void publish(ArtifactRepository repository, A artifact)
 
-    void writeVersion(String overrideVersion)
+    F readFileDefinition()
+
+    F writeVersion(String overrideVersion)
 }

@@ -2,10 +2,10 @@ package dev.rubentxu.jenkins
 
 import dev.rubentxu.jenkins.interfaces.ILogger
 import dev.rubentxu.jenkins.interfaces.IPipelineContext
-import dev.rubentxu.jenkins.interfaces.IStageExecutor
+import dev.rubentxu.jenkins.interfaces.IStage
 
 
-abstract class Stage extends Steps implements IStageExecutor {
+abstract class Stage extends Steps implements IStage {
 
     Stage(IPipelineContext pipeline) {
         super(pipeline)

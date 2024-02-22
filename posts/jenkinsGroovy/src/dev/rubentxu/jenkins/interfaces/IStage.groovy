@@ -1,7 +1,5 @@
 package dev.rubentxu.jenkins.interfaces
 
-interface IStageExecutor {
-
+interface IStage extends PipelineComponent {
     def stage(String name, Closure body)
-
 }

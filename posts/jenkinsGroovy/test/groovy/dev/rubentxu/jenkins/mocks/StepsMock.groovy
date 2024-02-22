@@ -12,7 +12,7 @@ import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 
 //@CompileStatic
-class StepsExecutorMock extends Script {
+class StepsMock extends Script {
 
     Map<String, Object> dynamicProps
     Map<String, Integer> invocationCounts
@@ -23,7 +23,7 @@ class StepsExecutorMock extends Script {
         return recorder
     }
 
-    StepsExecutorMock() {
+    StepsMock() {
         dynamicProps = [
                 env               : [:],
                 params            : [:],
@@ -250,21 +250,39 @@ class StepsExecutorMock extends Script {
 
     def methodMissing(String methodName, args) {
         // Incrementa el contador de invocaciones del método
-        if (!invocationCounts.containsKey(methodName)) {
-            invocationCounts[methodName] = 0
-        }
-        invocationCounts[methodName] = invocationCounts[methodName] + 1
+        incrementInvocationCount(methodName)
 
         def prop = dynamicProps[methodName]
         if (prop instanceof Closure) {
             def result = prop(*args)
-            if (!this.recorder.containsKey(methodName)) {
-                this.recorder.createList(methodName)
-            }
-            this.recorder.addMock(methodName, new MethodMock(methodName, args, result))
+            recordMethodInvocation(methodName, args, result)
             return result
         }
         throw new TestException("\u001B[1;31m************ Method Missing with name $methodName and args $args **************\u001B[0m")
+    }
+
+    private void incrementInvocationCount(String methodName) {
+        // Si el método no ha sido invocado antes, inicializa su contador a 0
+        if (!invocationCounts.containsKey(methodName)) {
+            invocationCounts[methodName] = 0
+        }
+        // Incrementa el contador de invocaciones del método
+        invocationCounts[methodName] = invocationCounts[methodName] + 1
+    }
+
+    private void recordMethodInvocation(String methodName, args, result) {
+        // Si el método no ha sido registrado antes, crea una nueva lista para él
+        if (!this.recorder.containsKey(methodName)) {
+            this.recorder.createList(methodName)
+        }
+        def argsList = args.toList()[0] instanceof Map ? args.toList()[0] : args.toList()
+
+        // Crea una nueva instancia de MethodInvocation dependiendo del tipo de argumentos
+        MethodInvocation methodMock = argsList instanceof Map
+                ? new NamedArgsMethodInvocation(methodName, argsList, result)
+                : new PositionalArgsMethodInvocation(methodName, argsList.toSet(), result)
+        // Registra la invocación del método
+        this.recorder.addMock(methodName, methodMock)
     }
 
     String getResourceContent(String file) {
