@@ -1,9 +1,8 @@
 package dev.rubentxu.jenkins.tools.interfaces
 
-import dev.rubentxu.jenkins.interfaces.IService
 import dev.rubentxu.jenkins.interfaces.ITool
-import dev.rubentxu.jenkins.vo.resources.http.RequestOptions
 import dev.rubentxu.jenkins.vo.resources.http.HttpResponse
+import dev.rubentxu.jenkins.vo.resources.http.RequestOptions
 
 interface IHttpClient extends ITool {
 

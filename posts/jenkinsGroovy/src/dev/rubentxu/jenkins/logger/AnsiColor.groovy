@@ -1,7 +1,5 @@
 package dev.rubentxu.jenkins.logger
 
-import com.cloudbees.groovy.cps.NonCPS
-
 enum AnsiColor implements Serializable {
     RESET('\u001B[0m'),
     BOLD('\u001B[1m'),

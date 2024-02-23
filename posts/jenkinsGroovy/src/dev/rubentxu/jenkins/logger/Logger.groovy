@@ -2,8 +2,6 @@ package dev.rubentxu.jenkins.logger
 
 import com.cloudbees.groovy.cps.NonCPS
 import dev.rubentxu.jenkins.interfaces.ILogger
-import dev.rubentxu.jenkins.logger.AnsiColor
-import dev.rubentxu.jenkins.logger.LogLevel
 
 class Logger implements ILogger {
 

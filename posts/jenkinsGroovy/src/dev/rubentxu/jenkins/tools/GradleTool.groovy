@@ -59,8 +59,8 @@ class GradleTool extends Steps implements IGradleTool {
         return new GradleFileDefinition(
                 id: "${gradleProperties.group}:${gradleProperties.name}",
                 name: gradleProperties.name,
-                group:  gradleProperties.group,
-                version: gradleProperties?.version?: '0.0.0'
+                group: gradleProperties.group,
+                version: gradleProperties?.version ?: '0.0.0'
         )
 
     }

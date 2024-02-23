@@ -114,7 +114,7 @@ class CurlHttpClient extends Steps implements IHttpClient {
     @Override
     String execute(String taskName, List<String> options) {
         def args = defaultArgs + options.join(' ')
-        def workDir = new File(pomXmlPath).getParent()?: '.'
+        def workDir = new File(pomXmlPath).getParent() ?: '.'
         steps.dir(workDir) {
             String tool = debugMode ? "${TOOL_NAME} -v" : TOOL_NAME
             steps.sh(script: "${tool} ${taskName} ${args}".trim(), returnStdout: true)

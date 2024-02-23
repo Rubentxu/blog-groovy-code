@@ -26,7 +26,7 @@ class MavenTool extends Steps implements IMavenTool {
     @Override
     String execute(String taskName, List<String> options) {
         def args = mavenDefaultArgs + options.join(' ')
-        def workDir = new File(pomXmlPath).getParent()?: '.'
+        def workDir = new File(pomXmlPath).getParent() ?: '.'
         steps.dir(workDir) {
             String tool = debugMode ? "${TOOL_NAME} -X" : TOOL_NAME
             steps.sh(script: "${tool} -s '${mavenSettingsPath}' ${taskName} ${args}".trim(), returnStdout: true)
@@ -46,7 +46,7 @@ class MavenTool extends Steps implements IMavenTool {
     }
 
     private void copyMavenSettingsFile() {
-        if (!steps.fileExists(file:  mavenSettingsPath)) {
+        if (!steps.fileExists(file: mavenSettingsPath)) {
             steps.configFileProvider([steps.configFile(fileId: settingsFileId, variable: 'FILE')]) {
                 steps.sh("cp -p '${steps.env.FILE}' '${mavenSettingsPath}'")
             }

@@ -5,6 +5,7 @@ import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.interfaces.ILogger
 import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.interfaces.IService
+
 import java.util.concurrent.ConcurrentHashMap
 
 class PipelineContext implements IPipelineContext {
