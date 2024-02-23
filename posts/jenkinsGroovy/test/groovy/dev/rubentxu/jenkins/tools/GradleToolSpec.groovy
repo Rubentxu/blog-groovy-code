@@ -20,9 +20,9 @@ class GradleToolSpec extends TestContext {
     def "test build"() {
         given:
         def pipeline = this.createPipeline(gradleProperties)
-        steps.credentialsProviderMock.setCredentials([
-            credentialsId: new UsernamePasswordCredentials('credentialsId', null, 'user',
-             )])
+//        steps.setCredentials([
+//            credentialsId: new UsernamePasswordCredentials('credentialsId', null, 'user',
+//             )])
 
         def gradleTool = new GradleTool(pipeline)
 
@@ -81,7 +81,7 @@ class GradleToolSpec extends TestContext {
         def options = ['option1', 'option2']
 
         when:
-        gradleTool.executeTask(taskName, options)
+        gradleTool.execute(taskName, options)
 
         then:
         steps.validate().sh(taskName, options, false)[1]

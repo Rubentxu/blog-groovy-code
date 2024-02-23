@@ -1,44 +1,43 @@
 package dev.rubentxu.jenkins.tools.interfaces
 
 import dev.rubentxu.jenkins.interfaces.IService
+import dev.rubentxu.jenkins.interfaces.ITool
+import dev.rubentxu.jenkins.vo.resources.http.RequestOptions
+import dev.rubentxu.jenkins.vo.resources.http.HttpResponse
 
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.net.http.HttpRequest.BodyPublisher
-
-interface IHttpClient extends IService {
+interface IHttpClient extends ITool {
 
     HttpResponse<String> get(URI url)
 
-    HttpResponse<String> get(URI url, HttpRequest.Builder options)
+    HttpResponse<String> get(URI url, RequestOptions options)
 
-    HttpResponse<String> post(URI url, BodyPublisher payload)
+    HttpResponse<String> post(URI url, Map payload)
 
-    HttpResponse<String> post(URI url, BodyPublisher payload, HttpRequest.Builder options)
+    HttpResponse<String> post(URI url, Map payload, RequestOptions options)
 
     HttpResponse<String> postFile(URI url, String filePath)
 
-    HttpResponse<String> postFile(URI url, String filePath, HttpRequest.Builder options)
+    HttpResponse<String> postFile(URI url, String filePath, RequestOptions options)
 
-    HttpResponse<String> put(URI url, BodyPublisher payload)
+    HttpResponse<String> put(URI url, Map payload)
 
-    HttpResponse<String> put(URI url, BodyPublisher payload, HttpRequest.Builder options)
+    HttpResponse<String> put(URI url, Map payload, RequestOptions options)
 
     HttpResponse<String> putFile(URI url, String filePath)
 
-    HttpResponse<String> putFile(URI url, String filePath, HttpRequest.Builder options)
+    HttpResponse<String> putFile(URI url, String filePath, RequestOptions options)
 
     HttpResponse<String> delete(URI url)
 
-    HttpResponse<String> patch(URI url, BodyPublisher payload)
+    HttpResponse<String> patch(URI url, Map payload)
 
-    HttpResponse<String> delete(URI url, HttpRequest.Builder options)
+    HttpResponse<String> delete(URI url, RequestOptions options)
 
     URI buildUrl(String baseUrl, String path, Map<String, Serializable> queryParams)
 
-    HttpResponse<String> withBasicAuthUsernamePassword(String usernamePasswordCredentialsId, HttpRequest.Builder body)
+    HttpResponse<String> withBasicAuthUsernamePassword(String usernamePasswordCredentialsId, RequestOptions body)
 
-    HttpResponse<String> withBasicAuthString(String stringCredentialsId, HttpRequest.Builder body)
+    HttpResponse<String> withBasicAuthString(String stringCredentialsId, RequestOptions body)
 
     Object mapJsonString(String jsonString)
 }

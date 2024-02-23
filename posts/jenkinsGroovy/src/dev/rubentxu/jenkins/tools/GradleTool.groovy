@@ -8,7 +8,6 @@ import dev.rubentxu.jenkins.tools.interfaces.IGradleTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleArtifact
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleFileDefinition
-import dev.rubentxu.jenkins.vo.resources.maven.MavenArtifact
 
 import java.nio.file.Paths
 
@@ -26,9 +25,9 @@ class GradleTool extends Steps implements IGradleTool {
 
     @Override
     GradleArtifact build(List<String> options) {
-        executeTask('clean build', ['-x', 'test'] + options, false)
+        execute('clean build', ['-x', 'test'] + options)
         GradleFileDefinition definition = readFileDefinition()
-        def artifactRef = "${definition.group.replaceAll('\\.', '/')}/${definition.name}/${definition.version}"
+        String artifactRef = "${definition.group.replaceAll('\\.', '/')}/${definition.name}/${definition.version}"
 
         new GradleArtifact(
                 id: "${definition.group}:${definition.name}:${definition.version}",
@@ -69,24 +68,20 @@ class GradleTool extends Steps implements IGradleTool {
     @Override
     GradleFileDefinition writeVersion(String overrideVersion) {
         if (steps.sh(returnStatus: true, script: "gradle tasks --all | grep -i updateVersion") == 0) {
-            executeTask('updateVersion', ["-PnewVersion='${overrideVersion}'"])
+            execute('updateVersion', ["-PnewVersion='${overrideVersion}'"])
         } else {
             steps.sh """sed -i -r '/^version( ?)=/s/[0-9]+.*/${overrideVersion}/g' ${gradlePropertiesFile}"""
         }
         return readFileDefinition()
     }
 
-    @Override
-    void executeTask(String taskName, List<String> options) {
-        executeTask(taskName, options, false)
-    }
 
     @Override
-    String executeTask(String taskName, List<String> options, Boolean returnStdout) {
-        executeTaskWithCredentials(taskName, options, credentialsId, returnStdout)
+    String execute(String taskName, List<String> options) {
+        executeTaskWithCredentials(taskName, options, credentialsId)
     }
 
-    private String executeTaskWithCredentials(String taskName, List<String> options, String credentials, Boolean returnStdout) {
+    private String executeTaskWithCredentials(String taskName, List<String> options, String credentials) {
         steps.dir(Paths.get(this.buildGradlePath).parent.toString()) {
             steps.withCredentials([
                     steps.usernamePassword(credentialsId: credentials, usernameVariable: 'USR', passwordVariable: 'PSW')
@@ -96,7 +91,7 @@ class GradleTool extends Steps implements IGradleTool {
                         "-Prepository_user=${steps.env.USR}",
                         "-Prepository_apiKey=${steps.env.PSW}"
                 ])
-                return steps.sh(script: "${tool} ${taskName} ${options.join(' ')}", returnStdout: returnStdout)
+                return steps.sh(script: "${tool} ${taskName} ${options.join(' ')}", returnStdout: true)
             }
         }
     }
@@ -105,11 +100,11 @@ class GradleTool extends Steps implements IGradleTool {
     @NonCPS
     @Override
     void initialize(IConfigClient configClient) {
-        this.credentialsId = configClient.get('gradle.repository.credentialsId')
-        this.buildGradlePath = configClient.get('gradle.buildGradlePath')
-        this.gradlePropertiesFile = configClient.get('gradle.gradlePropertiesPath')
-        this.debugMode = configClient.get('gradle.debug')
-        this.useWrapper = configClient.get('gradle.useWrapper')
+        this.credentialsId = configClient.required('gradle.repository.credentialsId', String.class)
+        this.buildGradlePath = configClient.optional('gradle.buildGradlePath', 'build.gradle')
+        this.gradlePropertiesFile = configClient.optional('gradle.gradlePropertiesPath', 'gradle.properties')
+        this.debugMode = configClient.optional('gradle.debug', false)
+        this.useWrapper = configClient.optional('gradle.useWrapper', false)
 
     }
 }

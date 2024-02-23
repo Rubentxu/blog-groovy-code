@@ -3,9 +3,9 @@ package dev.rubentxu.jenkins.mocks
 import dev.rubentxu.jenkins.interfaces.IConfigClient
 
 class ConfigClientMock implements IConfigClient {
-    private Map<String, String> config
+    private Map<String, Object> config
 
-    ConfigClientMock(Map<String, String> config = [:]) {
+    ConfigClientMock(Map<String, Object> config = [:]) {
         this.config = config
     }
 
@@ -15,13 +15,41 @@ class ConfigClientMock implements IConfigClient {
     }
 
     @Override
-    String get(String key) {
-        return config.get(key)
+    void refresh() {
+        // No operation needed for mock
     }
 
     @Override
-    void refresh() {
-        // No operation needed for mock
+    def <T> T required(String key, Class<T> type) {
+        def value = config.get(key)
+        if (value == null) {
+            throw new IllegalArgumentException("Configuration error : Key '${key}' not found")
+        }
+       if (value.getClass() != type) {
+            throw new IllegalArgumentException("Configuration error : Key '${key}' is not of type ${type}")
+        }
+        return value as T
+    }
+
+    @Override
+    def <T> T optional(String key, Class<T> type) {
+        def value = config.get(key)
+        if (value == null) {
+            return null
+        }
+        if (value.getClass() != type) {
+            throw new IllegalArgumentException("Configuration error : Key '${key}' is not of type ${type}")
+        }
+        return value as T
+    }
+
+    @Override
+    def <T> T optional(String key, T defaultValue) {
+        def value = config.get(key)
+        if (value == null) {
+            return defaultValue
+        }
+        return value as T
     }
 
     ConfigClientMock withValue(String key, String value) {

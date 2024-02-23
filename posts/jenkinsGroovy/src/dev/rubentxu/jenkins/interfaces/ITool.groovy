@@ -1,8 +1,7 @@
 package dev.rubentxu.jenkins.interfaces
 
-interface ITool {
+interface ITool extends PipelineComponent{
 
-    void executeTask(String taskName, List<String> options)
+    String execute(String taskName, List<String> options)
 
-    String executeTask(String taskName, List<String> options, Boolean returnStdout)
 }

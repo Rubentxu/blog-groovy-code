@@ -275,14 +275,14 @@ class StepsMock extends Script {
         if (!this.recorder.containsKey(methodName)) {
             this.recorder.createList(methodName)
         }
-        def argsList = args.toList()[0] instanceof Map ? args.toList()[0] : args.toList()
+        def argumentsResolved = recorder.getArgs(args)
 
         // Crea una nueva instancia de MethodInvocation dependiendo del tipo de argumentos
-        MethodInvocation methodMock = argsList instanceof Map
-                ? new NamedArgsMethodInvocation(methodName, argsList, result)
-                : new PositionalArgsMethodInvocation(methodName, argsList.toSet(), result)
+        MethodInvocation methodInvocation = argumentsResolved instanceof Map
+                ? new NamedArgsMethodInvocation(methodName, argumentsResolved, result)
+                : new PositionalArgsMethodInvocation(methodName, argumentsResolved, result)
         // Registra la invocación del método
-        this.recorder.addMock(methodName, methodMock)
+        this.recorder.addMock(methodName, methodInvocation)
     }
 
     String getResourceContent(String file) {

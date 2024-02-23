@@ -10,7 +10,7 @@ import dev.rubentxu.jenkins.tools.interfaces.IKubeCtlTool
 class KubeCtlTool extends Steps implements IKubeCtlTool {
 
     public static final String KUBECTL = "kubectl"
-    private String kubeconfig
+    private String kubeconfigPath
     private String defaultNamespace
 
     KubeCtlTool(IPipelineContext pipeline) {
@@ -18,18 +18,13 @@ class KubeCtlTool extends Steps implements IKubeCtlTool {
         initialize(pipeline.getConfigClient())
     }
 
-    @Override
-    void executeTask(String taskName, List<String> options) {
-        executeTask(taskName, options, false)
-    }
 
-    @Override
-    String executeTask(String taskName, List<String> options, Boolean returnStdout) {
+    String execute(String taskName, List<String> options) {
         logger.debug("Running kubectl task '${taskName}' with options ${options}")
         steps.withCredentials([
-                steps.file(credentialsId: kubeconfig, variable: 'KUBECONFIG')
+                steps.file(credentialsId: kubeconfigPath, variable: 'KUBECONFIG')
         ]) {
-            def result = steps.sh(returnStdout: returnStdout, script: "${KUBECTL} ${taskName} ${options.join(' ')}")
+            def result = steps.sh(script: "${KUBECTL} ${taskName} ${options.join(' ')}", returnStdout: true)
             logger.debug("Task '${taskName}' completed with output: ${result}")
             return result
         }
@@ -38,7 +33,7 @@ class KubeCtlTool extends Steps implements IKubeCtlTool {
     @Override
     List<String> getPods(String namespace = defaultNamespace, Map<String, String> options = ['-o', 'jsonpath={.items[*].metadata.name}']) {
         List<String> finalOptions = ['-n', namespace] + options
-        String pods = executeTask('get pods', finalOptions, true)
+        String pods = execute('get pods', finalOptions, true)
         return pods ? pods.split() : []
     }
 
@@ -46,8 +41,8 @@ class KubeCtlTool extends Steps implements IKubeCtlTool {
     @NonCPS
     @Override
     void initialize(IConfigClient configClient) {
-        kubeconfig = configClient.get('kubectl.kubeconfig')
-        defaultNamespace = configClient.get('kubectl.defaultNamespace')
+        kubeconfigPath = configClient.required('kubectl.kubeconfigPath', String.class)
+        defaultNamespace = configClient.optional('kubectl.defaultNamespace', 'default')
     }
 
 

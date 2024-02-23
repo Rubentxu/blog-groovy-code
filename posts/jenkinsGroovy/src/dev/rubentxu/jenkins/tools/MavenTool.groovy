@@ -11,37 +11,31 @@ import dev.rubentxu.jenkins.vo.resources.maven.MavenFileDefinition
 
 class MavenTool extends Steps implements IMavenTool {
 
+    public static final String TOOL_NAME = 'mvn'
     private String mavenDefaultArgs
     private String mavenSettingsPath
     private String pomXmlPath
     private String settingsFileId
     private Boolean debugMode
-    private String publishGoal
 
     MavenTool(IPipelineContext pipeline) {
         super(pipeline)
     }
 
-    @Override
-    void executeTask(String taskName, List<String> options) {
-        executeTask(taskName, options, false)
-    }
 
     @Override
-    String executeTask(String taskName, List<String> options, Boolean returnStdout) {
-        def args = options.join(' ')
+    String execute(String taskName, List<String> options) {
+        def args = mavenDefaultArgs + options.join(' ')
         def workDir = new File(pomXmlPath).getParent()?: '.'
         steps.dir(workDir) {
-            def tool = debugMode ? 'mvn -X' : 'mvn'
-            steps.sh(returnStdout: returnStdout,
-                    script: "${tool} -s '${mavenSettingsPath}' ${mavenDefaultArgs} ${taskName} ${args}")
-
+            String tool = debugMode ? "${TOOL_NAME} -X" : TOOL_NAME
+            steps.sh(script: "${tool} -s '${mavenSettingsPath}' ${taskName} ${args}".trim(), returnStdout: true)
         }
     }
 
     @Override
     MavenArtifact build(List<String> options) {
-        executeTask('package', ['-DskipTests'] + options)
+        execute('package', ['-DskipTests'] + options)
         MavenFileDefinition definition = readFileDefinition()
         return new MavenArtifact(
                 id: "${definition.groupId}:${definition.artifactId}:${definition.version}",
@@ -61,7 +55,7 @@ class MavenTool extends Steps implements IMavenTool {
 
     @Override
     void publish(ArtifactRepository repository, MavenArtifact artifact) {
-        executeTask("${publishGoal} org.apache.maven.plugins:maven-deploy-plugin:3.0.0-M1:deploy", [
+        execute("verify org.apache.maven.plugins:maven-deploy-plugin:3.0.0-M1:deploy", [
                 "-DaltDeploymentRepository=${repository.id}::${repository.baseUrl}/${repository.name}"
         ])
     }
@@ -89,19 +83,18 @@ class MavenTool extends Steps implements IMavenTool {
 
     @Override
     MavenFileDefinition writeVersion(String overrideVersion) {
-        executeTask('versions:set', ["-DnewVersion=${overrideVersion}"])
+        execute('versions:set', ["-DnewVersion=${overrideVersion}"])
         return readFileDefinition()
     }
 
     @NonCPS
     @Override
     void initialize(IConfigClient configClient) {
-        this.mavenSettingsPath = configClient.get('maven.settingsPath')
-        this.pomXmlPath = configClient.get('maven.pomXmlPath')
-        this.settingsFileId = configClient.get('maven.settingsFileId')
-        this.debugMode = configClient.get('maven.debug')
-        this.publishGoal = configClient.get('maven.publishGoal')
-        this.mavenDefaultArgs = configClient.get('maven.args')
+        this.mavenSettingsPath = configClient.optional('maven.settingsPath', String.class)
+        this.pomXmlPath = configClient.optional('maven.pomXmlPath', String.class)
+        this.settingsFileId = configClient.required('maven.settingsFileId', String.class)
+        this.debugMode = configClient.optional('maven.debug', Boolean.class)
+        this.mavenDefaultArgs = configClient.optional('maven.args', String.class)
         copyMavenSettingsFile()
     }
 

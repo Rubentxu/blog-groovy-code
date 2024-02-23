@@ -1,7 +1,6 @@
 package dev.rubentxu.jenkins.tools
 
 import dev.rubentxu.jenkins.mocks.TestContext
-import dev.rubentxu.jenkins.mocks.credentials.UsernamePasswordCredentials
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.maven.MavenArtifact
 
@@ -11,17 +10,14 @@ class MavenToolSpec extends TestContext {
             'maven.settingsPath'  : 'settings.xml',
             'maven.pomXmlPath'    : 'pom.xml',
             'maven.settingsFileId': 'settingsFileId',
-            'maven.debug'         : 'false',
+            'maven.debug'         : false,
             'maven.publishGoal'   : 'deploy',
-            'maven.args'          : '-DskipTests'
+            'maven.args'          : ''
     ]
 
     def "test build"() {
         given:
         def pipeline = this.createPipeline(mavenProperties)
-//        steps.setCredentials([
-//                credentialsId: new UsernamePasswordCredentials('credentialsId', 'user', 'password')
-//        ])
         steps.readMavenPom = {
             [
                     groupId: 'testGroupId',
@@ -36,20 +32,46 @@ class MavenToolSpec extends TestContext {
         mavenTool.build([])
 
         then:
-        steps.validate().sh(script: 'mvn -s settings.xml -DskipTests package', returnStdout: _)[2]
+        steps.validate().sh(script: "mvn -s 'settings.xml' package -DskipTests", returnStdout: true )[2]
+    }
+
+    def "test build with DebugMode"() {
+        given:
+        mavenProperties['maven.debug'] = true
+        def pipeline = this.createPipeline(mavenProperties)
+        steps.readMavenPom = {
+            [
+                    groupId: 'testGroupId',
+                    artifactId: 'testArtifactId',
+                    version: '1.0.0-test'
+            ]
+        }
+
+        def mavenTool = new MavenTool(pipeline)
+
+        when:
+        mavenTool.build([])
+
+        then:
+        steps.validate().sh(script: "mvn -X -s 'settings.xml' package -DskipTests", returnStdout: true )[2]
     }
 
     def "test publish"() {
         given:
         def pipeline = this.createPipeline(mavenProperties)
         def mavenTool = new MavenTool(pipeline)
-        def repository = new ArtifactRepository() // Define this with appropriate values
+        def repository = new ArtifactRepository(
+                id: 'testRepository',
+                name: 'testRepository',
+                baseUrl: 'http://localhost:8081/repository',
+                credentialsId: 'testCredentialsId'
+        )
 
         when:
         mavenTool.publish(repository, new MavenArtifact())
 
         then:
-        steps.validate().sh('mvn -s settings.xml -DskipTests deploy org.apache.maven.plugins:maven-deploy-plugin:3.0.0-M1:deploy', _)[1]
+        steps.validate().sh(script: "mvn -s 'settings.xml' verify org.apache.maven.plugins:maven-deploy-plugin:3.0.0-M1:deploy -DaltDeploymentRepository=testRepository::http://localhost:8081/repository/testRepository", _)[2]
     }
 
     def "test executeTask"() {
@@ -60,9 +82,9 @@ class MavenToolSpec extends TestContext {
         def options = ['option1', 'option2']
 
         when:
-        mavenTool.executeTask(taskName, options)
+        mavenTool.execute(taskName, options)
 
         then:
-        steps.validate().sh('mvn -s settings.xml -DskipTests testTask option1 option2', _)[1]
+        steps.validate().sh(script :"mvn -s 'settings.xml' testTask option1 option2", _)[2]
     }
 }
