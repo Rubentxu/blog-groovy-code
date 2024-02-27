@@ -1,6 +1,6 @@
 package dev.rubentxu.jenkins.vo.resources
 
-class FileDefinition extends Resource {
+class IProjectDefinitionFile extends Resource {
     String version
     def dependencies
 }

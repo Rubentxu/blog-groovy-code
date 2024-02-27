@@ -1,0 +1,55 @@
+@Library([
+    'core-lib',
+    'nodejs-lib'
+]) _
+
+import com.mdona.nodejs.domain.po.resources.repositories.NpmRepository
+
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+        GIT_REPOSITORY_PATH = "aplicaciones/fwkapi/fwkapi_lib"
+    }
+    parameters {
+            string(name: 'TAG_REFERENCE', description: 'Tag from repository to promote')
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+
+                    config([
+                            pipeline: [logLevel: 'DEBUG'],
+                            node: [ engineVersionConfig: [ enabled: false ] ]
+
+                    ])
+
+                    cpdApi.promoteCpdPackages(env.TAG_REFERENCE)
+                    cleanWs() //OJO SOLO CONTENEDOR
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+            }
+        }
+    }
+}

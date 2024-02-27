@@ -15,7 +15,6 @@ class KubeCtlTool extends Steps implements IKubeCtlTool {
 
     KubeCtlTool(IPipelineContext pipeline) {
         super(pipeline)
-        initialize(pipeline.getConfigClient())
     }
 
 
@@ -40,10 +39,13 @@ class KubeCtlTool extends Steps implements IKubeCtlTool {
 
     @NonCPS
     @Override
-    void initialize(IConfigClient configClient) {
+    void configure(IConfigClient configClient) {
         kubeconfigPath = configClient.required('kubectl.kubeconfigPath', String.class)
         defaultNamespace = configClient.optional('kubectl.defaultNamespace', 'default')
     }
 
+    @Override
+    void initialize() {
 
+    }
 }

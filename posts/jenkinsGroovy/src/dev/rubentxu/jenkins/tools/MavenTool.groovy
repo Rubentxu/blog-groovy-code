@@ -7,7 +7,7 @@ import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.tools.interfaces.IMavenTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.maven.MavenArtifact
-import dev.rubentxu.jenkins.vo.resources.maven.MavenFileDefinition
+import dev.rubentxu.jenkins.vo.resources.maven.MavenPomFile
 
 class MavenTool extends Steps implements IMavenTool {
 
@@ -22,7 +22,6 @@ class MavenTool extends Steps implements IMavenTool {
         super(pipeline)
     }
 
-
     @Override
     String execute(String taskName, List<String> options) {
         def args = mavenDefaultArgs + options.join(' ')
@@ -34,15 +33,27 @@ class MavenTool extends Steps implements IMavenTool {
     }
 
     @Override
+    void resolveDependencies() {
+        execute('dependency:resolve', [])
+    }
+
+    @Override
+    boolean test() {
+        String result = execute('test', ['-Dmaven.test.failure.ignore=true'])
+        return result.contains('BUILD SUCCESS')
+    }
+
+    @Override
     MavenArtifact build(List<String> options) {
         execute('package', ['-DskipTests'] + options)
-        MavenFileDefinition definition = readFileDefinition()
+        MavenPomFile definition = readFileDefinition()
         return new MavenArtifact(
                 id: "${definition.groupId}:${definition.artifactId}:${definition.version}",
                 name: definition.artifactId,
                 domain: definition.groupId,
                 version: definition.version
         )
+        logger.debug("Artifact build: ${definition.groupId}:${definition.artifactId}:${definition.version}")
     }
 
     private void copyMavenSettingsFile() {
@@ -61,11 +72,11 @@ class MavenTool extends Steps implements IMavenTool {
     }
 
     @Override
-    MavenFileDefinition readFileDefinition() {
+    MavenPomFile readFileDefinition() {
         def pom = steps.readMavenPom(file: pomXmlPath)
         def groupId = pom.groupId ?: pom.parent.groupId
 
-        def definition = new MavenFileDefinition(
+        def definition = new MavenPomFile(
                 id: "${groupId}:${pom.artifactId}",
                 name: "${groupId}:${pom.artifactId}",
                 artifactId: pom.artifactId,
@@ -82,21 +93,24 @@ class MavenTool extends Steps implements IMavenTool {
     }
 
     @Override
-    MavenFileDefinition writeVersion(String overrideVersion) {
+    MavenPomFile writeVersion(String overrideVersion) {
         execute('versions:set', ["-DnewVersion=${overrideVersion}"])
         return readFileDefinition()
     }
 
+
     @NonCPS
     @Override
-    void initialize(IConfigClient configClient) {
+    void configure(IConfigClient configClient) {
         this.mavenSettingsPath = configClient.optional('maven.settingsPath', String.class)
         this.pomXmlPath = configClient.optional('maven.pomXmlPath', String.class)
         this.settingsFileId = configClient.required('maven.settingsFileId', String.class)
         this.debugMode = configClient.optional('maven.debug', Boolean.class)
         this.mavenDefaultArgs = configClient.optional('maven.args', String.class)
-        copyMavenSettingsFile()
     }
 
-
+    @Override
+    void initialize() {
+        copyMavenSettingsFile()
+    }
 }

@@ -17,6 +17,7 @@ class MavenToolSpec extends TestContext {
 
     def "test build"() {
         given:
+        mavenProperties['maven.debug'] = true
         def pipeline = this.createPipeline(mavenProperties)
         steps.readMavenPom = {
             [
@@ -30,6 +31,7 @@ class MavenToolSpec extends TestContext {
 
         when:
         mavenTool.build([])
+
 
         then:
         steps.validate().sh(script: "mvn -s 'settings.xml' package -DskipTests", returnStdout: true )[2]
@@ -71,6 +73,7 @@ class MavenToolSpec extends TestContext {
         mavenTool.publish(repository, new MavenArtifact())
 
         then:
+        loggerSpy.info("Publishing artifact to testRepository")
         steps.validate().sh(script: "mvn -s 'settings.xml' verify org.apache.maven.plugins:maven-deploy-plugin:3.0.0-M1:deploy -DaltDeploymentRepository=testRepository::http://localhost:8081/repository/testRepository", _)[2]
     }
 

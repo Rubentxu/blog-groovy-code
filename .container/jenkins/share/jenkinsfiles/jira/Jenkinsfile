@@ -1,0 +1,112 @@
+@Library([
+        'core-lib@feature/EXPLCICD-2972-Migración_Kafka_desde_libreria_vieja',
+        'maven-lib@feature/EXPLCICD-2972-Migración_Kafka_desde_libreria_vieja',
+        'confluentplatform-lib@feature/EXPLCICD-2972-Migración_Kafka_desde_libreria_vieja',
+]) _
+
+import com.mdona.jira.domain.po.issue.Issue
+
+cdi.initialize(this)
+
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'kubernetes-agents'
+            defaultContainer 'jnlp'
+            inheritFrom 'jenkins-tools'
+            yamlMergeStrategy merge()
+            yaml '''
+                spec:
+                  containers:
+                  - name: jnlp
+                    image: docker.artifactory.gcp.mercadona.com/custom/jenkins-tools:jnlp-jdk11-python3.9-v2
+                    resources:
+                      requests:
+                        cpu: 400m
+                        memory: 2Gi
+                      limits:
+                        cpu: 2
+                        memory: 2Gi
+            '''
+        }
+    }
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['PRE', 'PRO'], description: 'Entorno')
+        string(name: 'VERSION', defaultValue: '9.1.1', description: 'Por defecto el microservicio es jira-cicd-tool')
+        choice(name: 'JIRA_RESULT_FAKE_DEPLOY', choices: ['OK', 'KO'], description: 'Resultado del falso despligue')
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    config([
+                            defaultProfile: 'TEST',
+                            BRANCH_CONFIG_MANAGEMENTS: 'feat/jira-pipeline-cloudbees',
+                            pipeline: [
+                                    logLevel: 'DEBUG',
+                                    env: [
+                                            M2_HOME: '/var/jenkins_home/.m2/',
+                                            MAVEN_OPTS: '-Xms64M -Xmx768M -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStorePassword=changeit -Dmaven.repo.local=/var/jenkins_home/.m2/',
+//                                            PATH: '/opt/cache/asdf-tools/shims:/var/jenkins_home/.asdf/bin:/var/jenkins_home/.local/bin:/var/jenkins_home/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+                                    ],
+                            ],
+                            asdf: [defaultToolVersionsFileDir: '/var/jenkins_home/'],
+                    ])
+
+                    // Instance jiraIssue
+                    def jiraIssue = new Issue()
+
+                    // Fields values for create issue
+                    jiraIssue.solucionMercadona = "CICD Nube"
+                    // jiraIssue.fieldMicroservice = "jira-cicd-tool"
+                    jiraIssue.microservice = "demoscicd-front-departamento"
+                    jiraIssue.description = "Pipeline de test e integraciones de Jira"
+                    jiraIssue.environment = "${params.ENVIRONMENT}"
+                    jiraIssue.version = "${params.VERSION}"
+                    jiraIssue.cloud = "Google"
+                    jiraIssue.namespace = "default"
+                    jiraIssue.component = "Otros"
+                    jiraIssue.category = "Pruebas"
+                    jiraIssue.labels = ["Cloudbees","${jiraIssue.category}"]
+
+                    // Codition only in pipeline test for fake deploy
+//                    if(params.JIRA_RESULT_FAKE_DEPLOY == 'OK') {
+//                        jiraIssue.fieldComment = "SUCCESS!"
+//                        jiraIssue.fieldPipelineResult = "OK"
+//                    } else {
+//                        jiraIssue.fieldComment = "TODO: Mensaje del error"
+//                        jiraIssue.fieldPipelineResult = "KO"
+//                    }
+
+                    // Invoke and pass object with the required fields
+                    jira.jiraStart(jiraIssue)
+
+                    fakeDeploy()
+
+                    // Invoke and pass object with the required fields
+                    jira.jiraEnd(jiraIssue)
+
+                }
+            }
+        }
+    }
+}
+
+
+void fakeDeploy(){
+    cdi.stage('Fake deploy') {
+        sleep(3)
+    }
+}
+
+
+

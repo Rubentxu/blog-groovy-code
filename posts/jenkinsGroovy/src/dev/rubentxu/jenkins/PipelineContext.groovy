@@ -1,5 +1,6 @@
 package dev.rubentxu.jenkins
 
+import com.cloudbees.groovy.cps.NonCPS
 import dev.rubentxu.jenkins.cdi.IServiceFactory
 import dev.rubentxu.jenkins.interfaces.IConfigClient
 import dev.rubentxu.jenkins.interfaces.ILogger
@@ -30,14 +31,14 @@ class PipelineContext implements IPipelineContext {
 
 
     @Override
-    IService getService(String name) {
-        return services.containsKey(name) ? services[name].create(this) : null
+    <T extends IService> T getService(String name) {
+        return services.containsKey(name) ? services[name].create(this) : null as T
     }
 
     @Override
     void initializeServices(IConfigClient configClient) {
         services.each { name, factory ->
-            factory.create(this).initialize(configClient)
+            factory.create(this).configure(configClient)
         }
     }
 
@@ -59,16 +60,19 @@ class PipelineContext implements IPipelineContext {
         envVars.each { k, v -> jenkinsEnvVars[k] = v }
     }
 
+    @NonCPS
     @Override
     IConfigClient getConfigClient() {
         return configClient
     }
 
+    @NonCPS
     @Override
     ILogger getLogger() {
         return logger
     }
 
+    @NonCPS
     @Override
     Script getSteps() {
         return steps

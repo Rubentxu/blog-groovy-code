@@ -1,0 +1,59 @@
+@Library([
+    'core-lib',
+    'container-lib',
+    'gradle-lib',
+    'helm-lib',
+    'spinnaker-lib',
+]) _
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+cdi.initialize(this)
+
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+    }
+    options {
+        timeout(time: 20, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        ansiColor('xterm')
+        skipDefaultCheckout true
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    pipelineUtils.setCurrentBuildDescription("Version: '${params.CURRENT_VERSION}' | Env: '${params.CHOICE_ENV}' | GitRef: '${params.GIT_REFERENCE}'")
+                    preview.assertNotEmpty('GIT_REPOSITORY_URL', true)
+                    preview.assertNotEmpty('GIT_REFERENCE', true)
+
+                    gitTool.lightweightCheckoutInAgent(params.GIT_REPOSITORY_URL, params.GIT_REFERENCE, env.CONFIG_MANAGEMENT_GIT_CREDENTIAL_ID)
+
+                    config([
+                        defaultProfile: "TEST",
+                        pipeline: [logLevel: 'INFO', appVersion: params.CURRENT_VERSION],
+                    ])
+
+                    gradleRelease.writeVersion(params.CURRENT_VERSION)
+                    gradleRelease.build()
+                    gradleRelease.prepareDeployment()
+                    gradleRelease.prepareDockerfile()
+                    containerRelease.build()
+                    containerRelease.publish()
+                    helmRelease.build()
+                    helmRelease.publish()
+                    spinnaker.sendWebhook([
+                        gitReference: params.GIT_REFERENCE,
+                        environment: params.CHOICE_ENV,
+                        version: params.CURRENT_VERSION
+                    ])
+                    artifacts.printPublishedArtifacts()
+                }
+            }
+        }
+    }
+}

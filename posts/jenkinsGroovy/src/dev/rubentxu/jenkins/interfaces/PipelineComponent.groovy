@@ -4,5 +4,6 @@ import com.cloudbees.groovy.cps.NonCPS
 
 interface PipelineComponent {
     @NonCPS
-    void initialize(IConfigClient configClient)
+    void configure(IConfigClient configClient)
+
 }

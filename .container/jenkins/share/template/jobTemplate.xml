@@ -1,0 +1,68 @@
+<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject >
+    <actions/>
+    <description/>
+    <displayName>${displayName}</displayName>
+    <properties/>
+    <folderViews class="jenkins.branch.MultiBranchProjectViewHolder" >
+        <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+    </folderViews>
+    <healthMetrics/>
+    <icon class="jenkins.branch.MetadataActionFolderIcon" >
+        <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+    </icon>
+    <orphanedItemStrategy class="com.cloudbees.hudson.plugins.folder.computed.DefaultOrphanedItemStrategy" >
+        <pruneDeadBranches>true</pruneDeadBranches>
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>-1</numToKeep>
+        <abortBuilds>false</abortBuilds>
+    </orphanedItemStrategy>
+    <triggers/>
+    <disabled>false</disabled>
+    <sources class="${sourceClass}" >
+        <data>
+            <jenkins.branch.BranchSource>
+                <source class="jenkins.plugins.git.GitSCMSource" >
+                    <id>${remoteRepository}</id>
+                    <remote>${remoteRepository}</remote>
+                    <credentialsId/>
+                    <traits>
+                        <jenkins.plugins.git.traits.BranchDiscoveryTrait/>
+                        <jenkins.scm.impl.trait.RegexSCMHeadFilterTrait >
+                            <regex>master</regex>
+                        </jenkins.scm.impl.trait.RegexSCMHeadFilterTrait>
+                    </traits>
+                </source>
+                <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
+                    <properties class="empty-list"/>
+                </strategy>
+            </jenkins.branch.BranchSource>
+        </data>
+        <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+    </sources>
+    <factory class="org.jenkinsci.plugins.workflow.multibranch.extended.RemoteJenkinsFileWorkflowBranchProjectFactory" >
+        <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+        <scriptPath>Jenkinsfile</scriptPath>
+        <localMarker/>
+        <remoteJenkinsFile>${jenkinsFilePath}</remoteJenkinsFile>
+        <remoteJenkinsFileSCM class="hudson.plugins.git.GitSCM" >
+            <configVersion>2</configVersion>
+            <userRemoteConfigs>
+                <hudson.plugins.git.UserRemoteConfig>
+                    <url>${jenkinsFileRepository}</url>
+                </hudson.plugins.git.UserRemoteConfig>
+            </userRemoteConfigs>
+            <branches>
+                <hudson.plugins.git.BranchSpec>
+                    <name>*/master</name>
+                </hudson.plugins.git.BranchSpec>
+            </branches>
+            <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+            <submoduleCfg class="empty-list"/>
+            <extensions/>
+        </remoteJenkinsFileSCM>
+        <matchBranches>false</matchBranches>
+        <scmSourceBranchName>master</scmSourceBranchName>
+        <fallbackBranch>master</fallbackBranch>
+        <lookupInParameters>false</lookupInParameters>
+    </factory>
+</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>

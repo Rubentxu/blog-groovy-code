@@ -1,0 +1,82 @@
+@Library([
+    'core-lib',
+    'maven-lib',
+    'confluentplatform-lib',
+]) _
+
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+
+
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+        BRANCH_NAME = 'master'
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+
+                    config([
+                            defaultProfile: 'TEST',
+                            pipeline: [logLevel: 'DEBUG'],
+                            node: [ engineVersionConfig: [ enabled: false ] ]
+
+                    ])
+
+                    when(is.mr()) {
+                        release.validateMergeRequestTitle()
+                    }
+
+                    when(is.pushToMaster()) {
+                        release.isReleaseCommit()
+                    }
+
+                    kafkaTopic.initialize()
+
+                    when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+                        kafkaTopic.calculateNextRelease()
+                    }
+
+                    kafkaTopic.validate()
+                    kafkaTopic.buildVariants()
+                    when(is.mr()) {
+                        kafkaTopic.approveMergeRequestByMiddlewareTeam()
+                    }
+
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+//                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+        success {
+            script {
+                when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+//                    kafkaTopic.publishManifests()
+//                    release.createRelease(env.BRANCH_NAME)
+                }
+//                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+    }
+}
+

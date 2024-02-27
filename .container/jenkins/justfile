@@ -1,0 +1,132 @@
+set shell := ["bash", "-uc"]
+
+
+
+# Show available recipes
+default:
+    @just --list
+
+
+# Build the Jenkins image
+buildImage TAG='custom/jenkins-testing' VERSION='1.0.0':
+    docker build -t {{TAG}}:{{VERSION}} --no-cache -f Dockerfile ./container-context
+
+# Pull the Jenkins image from the registry
+pullImage TAG='custom/jenkins-testing' VERSION='1.0.0':
+    docker pull {{TAG}}:{{VERSION}}
+
+# Remove volumes
+removeVolumes:
+    docker volume rm jenkins-data || true
+    rm -fr build/ || true
+
+removeImage TAG='custom/jenkins-testing' VERSION='1.0.0':
+    docker rmi {{TAG}}:{{VERSION}} || true
+
+# Stop the server
+stopServer NAME='jenkins-testing':
+    docker stop {{NAME}} || true
+
+# Restart the server
+restart:
+    just stopServer
+    just deleteContainer
+    just startServer
+
+# Stop the server
+stop:
+    just stopServer
+
+# Cleanup
+cleanup:
+    just stopServer
+    just removeVolumes
+
+# Delete all images
+deleteAll:
+    docker rm -f $(docker ps -a -q) || true
+    docker rmi $(docker images -q) -f || true
+
+# Stop all containers
+stopAll:
+    docker stop $(docker ps -a -q)
+
+# Delete all volumes
+deleteAllVolumes:
+    docker stop $(docker ps -a -q) || true
+    docker volume rm $(docker volume ls -q) --force || true
+
+# Show logs
+logs NAME='jenkins-testing':
+    docker logs --follow {{NAME}}
+
+# Sync repos
+sync NAME='jenkins-testing':
+    docker exec {{NAME}} bash init.groovy.d/sync-repos.sh
+
+# Create repo
+createRepo NAME='jenkins-testing' REPOSITORY='github.com/jenkins-docs/simple-java-maven-app.git' JENKINSFILEPATH='jenkinsfiles/backend/Jenkinsfile' WITHPREVIEWJOB='false':
+    docker exec {{NAME}} bash init.groovy.d/create-job.sh {{REPOSITORY}},{{JENKINSFILEPATH}},{{WITHPREVIEWJOB}}
+
+# Sync remote credentials
+syncRemoteCredentials NAME='jenkins-testing':
+    docker exec {{NAME}} asdf global groovy 2.5.14
+    docker exec {{NAME}} bash init.groovy.d/sync-remote-credentials.sh
+
+installAsdfTools NAME='jenkins-testing':
+    docker exec {{NAME}} bash init.groovy.d/install-tools.sh
+
+installJenkinsCli NAME='jenkins-testing':
+    docker exec {{NAME}} bash init.groovy.d/install-jenkins-cli.sh
+
+bash NAME='jenkins-testing':
+    docker exec -it {{NAME}} bash
+
+installPlugins NAME='jenkins-testing':
+    docker exec {{NAME}} bash jenkins-plugin-cli --plugin-file init.groovy.d/plugins.txt -d /var/jenkins_home/plugins
+
+deleteContainer NAME='jenkins-testing':
+    docker rm -f {{NAME}} || true
+
+
+
+startServer NAME='jenkins-testing' TAG='custom/jenkins-testing' VERSION='1.0.0':
+    docker run \
+        --privileged \
+        --name {{NAME}} \
+        --rm \
+        --detach \
+        --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
+        --env CASC_JENKINS_CONFIG="/usr/share/jenkins/ref/casc" \
+        --env SECRETS_FILE="/var/jenkins_home/.env" \
+        --env NPM_CONFIG_STRICT_SSL="false" \
+        --publish 8080:8080 \
+        --publish 50000:50000 \
+        --volume jenkins-data:/var/jenkins_home \
+        --volume jenkins-repos:/opt/repositories \
+        --volume jenkins-cache:/opt/cache \
+        --volume $(pwd)/../../posts:/opt/libs \
+        --volume $(pwd)/share:/usr/share/jenkins/ref \
+        --volume $(pwd)/scripts:/var/jenkins_home/init.groovy.d \
+        --mount type=bind,source=$(pwd)/share/.env,target=/var/jenkins_home/.env \
+        --cpus="2" \
+        --memory="3g" \
+        --network host {{TAG}}:{{VERSION}}
+
+
+# Start the Jenkins server
+#startServer NAME='jenkins-testing' TAG='custom/jenkins-testing' VERSION='1.0.0':
+#    docker run -d --name {{NAME}} \
+#      --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Dhudson.PluginManager.workDir=/opt/jenkins/plugins/" \
+#      --env CASC_JENKINS_CONFIG="/usr/share/jenkins/ref/casc" \
+#      --env SECRETS_FILE="/var/jenkins_home/.env" \
+#      --env NPM_CONFIG_STRICT_SSL="false" \
+#      -v $(pwd)/../../posts:/opt/libs \
+#      -v $(pwd)/share:/usr/share/jenkins/ref:ro \
+#      -v $(pwd)/scripts:/var/jenkins_home/init.groovy.d \
+#      -v jenkins-data:/var/jenkins_home \
+#      --mount type=bind,source=$(pwd)/share/.env,target=/var/jenkins_home/.env \
+#      --network host \
+#      -p 8080:8080 -p 50000:50000  {{TAG}}:{{VERSION}}
+#
+#

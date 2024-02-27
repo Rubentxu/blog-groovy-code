@@ -1,5 +1,7 @@
 package dev.rubentxu.jenkins.logger
 
+import com.cloudbees.groovy.cps.NonCPS
+
 
 enum LogLevel implements Serializable {
     FATAL(100, AnsiColor.RED, AnsiColor.BOLD),
@@ -18,18 +20,7 @@ enum LogLevel implements Serializable {
         this.style = style
     }
 
-    int getLevelNumber() {
-        return this.levelNumber
-    }
-
-    AnsiColor getColor() {
-        return this.color
-    }
-
-    AnsiColor getStyle() {
-        return this.style
-    }
-
+    @NonCPS
     @Override
     String toString() {
         return this.name()

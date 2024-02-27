@@ -1,0 +1,103 @@
+@Library([
+    'core-lib',
+    'maven-lib',
+    'confluentplatform-lib',
+]) _
+
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+
+
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+        BRANCH_NAME = 'master'
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    config([
+                            defaultProfile: 'TEST',
+                            pipeline: [
+                                    logLevel: 'DEBUG',
+                                    env: [
+                                            M2_HOME: '/var/jenkins_home/.m2/',
+                                            MAVEN_OPTS: '-Xms64M -Xmx768M -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStorePassword=changeit -Dmaven.repo.local=/var/jenkins_home/.m2/',
+//                                            PATH: '/opt/cache/asdf-tools/shims:/var/jenkins_home/.asdf/bin:/var/jenkins_home/.local/bin:/var/jenkins_home/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+                                    ],
+                            ],
+                            asdf: [defaultToolVersionsFileDir: '/var/jenkins_home/'],
+                    ])
+                    when(is.mr()) {
+                        release.validateMergeRequestTitle()
+                    }
+                    when(is.pushToMaster()) {
+                        release.isReleaseCommit()
+                    }
+//                    gitTool.checkout()
+                    confluentPlatform.initializeKafkaSchema()
+
+                    when(is.pushToMaster()) {
+                        confluentPlatform.calculateKafkaSchemaNextRelease()
+                    }
+
+                    boolean isChangedAvroFiles = workspace.checkWatchedFiles(false,['avro/**.avsc','pom.xml'],[])
+                    echo "isChangedAvroFiles: ${isChangedAvroFiles}"
+                    when(isChangedAvroFiles) {
+                        confluentPlatform.generateKafkaSchemaSources()
+                        when(is.pushToMaster()) {
+                            confluentPlatform.registerKafkaSchemas()
+                            confluentPlatform.publishKafkaSchemaArtifacts()
+                        }
+                    }
+
+                    when(is.pushToMaster()) {
+                        boolean isChangedCompatibilityLevels = workspace.checkWatchedFiles(false,['schema-compatibility-levels.json'],[])
+                        when( isChangedCompatibilityLevels) {
+                            confluentPlatform.updateKafkaSchemaCompatibilityLevels()
+
+                            when(!isChangedAvroFiles) {
+                                confluentPlatform.createCompatibilityRelease()
+                            }
+                        }
+                        when.any([isChangedAvroFiles, isChangedCompatibilityLevels]) {
+                            release.createRelease(env.BRANCH_NAME)
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+//                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+        success {
+            script {
+                when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+//                    kafkaTopic.publishManifests()
+//                    release.createRelease(env.BRANCH_NAME)
+                }
+//                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+    }
+}
+

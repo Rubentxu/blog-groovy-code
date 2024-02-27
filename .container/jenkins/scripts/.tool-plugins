@@ -1,0 +1,15 @@
+java                https://github.com/halcyon/asdf-java
+gradle              https://github.com/rfrancis/asdf-gradle
+maven               https://github.com/halcyon/asdf-maven
+helm                https://github.com/Antiarchitect/asdf-helm
+kubeval             https://github.com/stefansedich/asdf-kubeval.git
+nodejs              https://github.com/asdf-vm/asdf-nodejs.git
+opa                 https://github.com/tochukwuvictor/asdf-opa.git
+dive                https://github.com/looztra/asdf-dive.git
+gomplate            https://github.com/sneakybeaky/asdf-gomplate.git
+hadolint            https://github.com/looztra/asdf-hadolint.git
+shellcheck          https://github.com/luizm/asdf-shellcheck.git
+terraform           https://github.com/Banno/asdf-hashicorp.git
+trivy               https://github.com/zufardhiyaulhaq/asdf-trivy.git
+yq                  https://github.com/sudermanjr/asdf-yq.git
+jq                  https://github.com/azmcode/asdf-jq.git

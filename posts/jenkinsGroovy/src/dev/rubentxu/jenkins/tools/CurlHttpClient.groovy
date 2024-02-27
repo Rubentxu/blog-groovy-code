@@ -122,8 +122,13 @@ class CurlHttpClient extends Steps implements IHttpClient {
     }
 
     @Override
-    void initialize(IConfigClient configClient) {
+    void configure(IConfigClient configClient) {
         this.defaultArgs = configClient.optional('httpClient.defaultArgs', '')
         this.debugMode = configClient.optional('httpClient.debugMode', false)
+    }
+
+    @Override
+    void initialize() {
+
     }
 }

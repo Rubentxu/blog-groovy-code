@@ -2,9 +2,13 @@ package dev.rubentxu.jenkins.interfaces
 
 import dev.rubentxu.jenkins.vo.resources.Artifact
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
-import dev.rubentxu.jenkins.vo.resources.FileDefinition
+import dev.rubentxu.jenkins.vo.resources.IProjectDefinitionFile
 
-interface IBuildTool<A extends Artifact, F extends FileDefinition> extends ITool {
+interface IBuildTool<A extends Artifact, F extends IProjectDefinitionFile> extends ITool {
+
+    void resolveDependencies()
+
+    boolean test()
 
     A build(List<String> options)
 
@@ -13,4 +17,5 @@ interface IBuildTool<A extends Artifact, F extends FileDefinition> extends ITool
     F readFileDefinition()
 
     F writeVersion(String overrideVersion)
+
 }

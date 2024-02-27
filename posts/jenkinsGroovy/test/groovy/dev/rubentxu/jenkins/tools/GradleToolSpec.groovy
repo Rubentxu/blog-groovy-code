@@ -2,9 +2,8 @@ package dev.rubentxu.jenkins.tools
 
 
 import dev.rubentxu.jenkins.mocks.TestContext
-import dev.rubentxu.jenkins.mocks.credentials.UsernamePasswordCredentials
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
-import dev.rubentxu.jenkins.vo.resources.gradle.GradleFileDefinition
+import dev.rubentxu.jenkins.vo.resources.gradle.GradleIProjectDefinitionFile
 
 class GradleToolSpec extends TestContext {
 
@@ -57,7 +56,7 @@ class GradleToolSpec extends TestContext {
 
         then:
         steps.validate().readProperties(file: _)[1]
-        definition instanceof GradleFileDefinition
+        definition instanceof GradleIProjectDefinitionFile
     }
 
     def "test writeVersion"() {

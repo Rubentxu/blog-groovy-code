@@ -1,0 +1,83 @@
+@Library([
+    'core-lib',
+    'nodejs-lib'
+]) _
+
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+
+import com.mdona.nodejs.domain.po.resources.repositories.NpmRepository
+
+
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+        BRANCH_NAME = 'master'
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+
+                    config([
+                            pipeline: [logLevel: 'DEBUG'],
+                            node: [ engineVersionConfig: [ enabled: false ] ]
+
+                    ])
+
+                    when(is.mr()) {
+                        release.validateMergeRequestTitle()
+                    }
+
+                    when(is.pushToMaster()) {
+                        release.isReleaseCommit()
+                    }
+
+                    npmRelease.configureEngineVersion()
+
+                    when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+                        npmRelease.calculateNextRelease()
+                    }
+
+                    npmRelease.installDependencies()
+
+                    when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+                        npmRelease.build()
+                        // TODO Subir fuentes a Artifactory
+                    }
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+        success {
+            script {
+                when.all([is.pushToMaster(), workspace.checkWatchedFiles()]) {
+                    cpdApi.publishPackages()
+                    release.createRelease(env.BRANCH_NAME)
+                }
+                artifacts.printPublishedArtifacts()
+                cleanWs() //OJO SOLO CONTENEDOR
+            }
+        }
+    }
+}
+

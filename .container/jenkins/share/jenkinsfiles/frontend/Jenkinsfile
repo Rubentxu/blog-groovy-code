@@ -1,0 +1,133 @@
+@Library([
+    'core-lib',
+    'container-lib',
+    'helm-lib',
+    'nodejs-lib',
+    'scanners-lib',
+    'spinnaker-lib',
+]) _
+
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    config([
+                        defaultProfile: 'TEST',
+                        pipeline: [logLevel: 'DEBUG'],
+                        sonar: [
+                            sonarArgs: [
+                                'sonar.sources': 'src',
+                                'sonar.tests': 'src',
+                                'sonar.test.inclusions': '**/*.spec.ts',
+                                'sonar.javascript.lcov.reportPaths': './coverage/lcov.info'
+                            ]
+                        ],
+                        node: [ engineVersionConfig: [ reference: 'feat/fwk_new_version' ] ],
+
+                    ])
+
+                    when(is.mr()) {
+                        release.validateMergeRequestTitle()
+                    }
+
+                    when(is.pushToMaster()) {
+                        release.isReleaseCommit()
+                    }
+
+                    npmRelease.configureEngineVersion()
+
+                    when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+                        npmRelease.calculateNextRelease()
+                    }
+
+                    npmRelease.installDependencies()
+                    npmRelease.build()
+                    parallel(
+                        lint: {
+                            npmRelease.lint()
+                        },
+                        audit: {
+                            npmRelease.audit()
+                        },
+                        failFast: true
+                    )
+
+//                    container('selenium-chrome') { // TODO: lo ejecutamos en el contenedor de selenium por si el proyecto aún no usa el grid
+//                        npmRelease.test()
+//                    }
+
+                    parallel(
+                        staticAnalysis: {
+//                            sonarScanner.scanAndReportResults()
+                        },
+                        staticAnalysisCheckmarx: {
+                            checkmarxScanner.scan()
+                        },
+                        failFast: true
+                    )
+
+                    when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+
+                        npmRelease.createAppVersionFile()
+                        containerRelease.build()
+//                        prismaScanner.scan()
+                        containerRelease.publish()
+                        parallel(
+                            publishBinary: {
+                                npmRelease.publishSourceMaps()
+                            },
+                            publishHelmChart: {
+                                helmRelease.build()
+                                helmRelease.publish()
+                            },
+                            failFast: true
+                        )
+                    }
+                }
+            }
+        }
+    }
+    post {
+//        always {
+//            script {
+//                prismaScanner.reportResults()
+//            }
+//        }
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+            }
+        }
+        success {
+            script {
+                when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+                    release.createRelease(env.BRANCH_NAME)
+                    spinnaker.sendWebhook()
+                }
+                when(is.pushToHotfixBranch()) {
+                    release.createMergeRequestFromHotfix(env.BRANCH_NAME)
+                }
+                artifacts.printPublishedArtifacts()
+            }
+        }
+    }
+}

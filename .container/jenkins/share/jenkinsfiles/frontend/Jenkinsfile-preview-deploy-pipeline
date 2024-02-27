@@ -1,0 +1,58 @@
+@Library([
+    'core-lib',
+    'container-lib',
+    'helm-lib',
+    'nodejs-lib',
+    'spinnaker-lib',
+]) _
+
+cdi.initialize(this)
+
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+    }
+    options {
+        timeout(time: 20, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        ansiColor('xterm')
+        skipDefaultCheckout true
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    pipelineUtils.setCurrentBuildDescription("Version: '${params.CURRENT_VERSION}' | Env: '${params.CHOICE_ENV}' | GitRef: '${params.GIT_REFERENCE}'")
+                    preview.validateParams('CURRENT_VERSION', 'GIT_REFERENCE')
+
+                    gitTool.lightweightCheckoutInAgent(params.GIT_REPOSITORY_URL, params.GIT_REFERENCE, env.CONFIG_MANAGEMENT_GIT_CREDENTIAL_ID)
+
+                    config([
+                        defaultProfile: "TEST",
+                        pipeline: [logLevel: 'INFO', appVersion: params.CURRENT_VERSION]
+                    ])
+
+                    npmRelease.configureEngineVersion()
+                    npmRelease.installDependencies()
+                    npmRelease.writeVersion(params.CURRENT_VERSION)
+                    npmRelease.build()
+                    npmRelease.publishSourceMaps()
+                    containerRelease.build()
+                    containerRelease.publish()
+                    helmRelease.build()
+                    helmRelease.publish()
+                    spinnaker.sendWebhook([
+                        gitReference: params.GIT_REFERENCE,
+                        environment: params.CHOICE_ENV,
+                        version: params.CURRENT_VERSION
+                    ])
+                    artifacts.printPublishedArtifacts()
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,100 @@
+@Library([
+    'core-lib',
+    'container-lib',
+    'gradle-lib',
+    'helm-lib',
+    'scanners-lib',
+    'spinnaker-lib',
+]) _
+def url() {
+    return scm.userRemoteConfigs.first().url.replace('/opt/repositories/remote/projects/', 'https://gitlab.gcp.mercadona.com/') as String
+}
+cdi.initialize(this)
+pipeline {
+    agent any
+    environment {
+        GIT_REPOSITORY_URL = url()
+    }
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    config([
+                        defaultProfile: 'TEST',
+                        pipeline: [logLevel: 'INFO'],
+                    ])
+
+                    when(is.mr()) {
+                        release.validateMergeRequestTitle()
+                    }
+
+                    when(is.pushToMaster()) {
+                        release.isReleaseCommit()
+                    }
+
+                    when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+                        gradleRelease.calculateNextRelease()
+                    }
+
+                    gradleRelease.test()
+
+                    parallel(
+                        staticAnalysis: {
+//                            sonarScanner.scanAndReportResults()
+                        },
+                        staticAnalysisCheckmarx: {
+                            checkmarxScanner.scan()
+                        },
+                        failFast: true
+                    )
+
+                    when.any([is.pushToMaster(), is.pushToHotfixBranch(), is.mr()]) {
+                        gradleRelease.build()
+                        gradleRelease.prepareDeployment()
+                        gradleRelease.prepareDockerfile()
+                        containerRelease.build()
+//                        prismaScanner.scan()
+                    }
+
+                    when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+                        containerRelease.publish()
+                        helmRelease.build()
+                        helmRelease.publish()
+                    }
+                }
+            }
+        }
+    }
+    post {
+//        always {
+//            script {
+//                prismaScanner.reportResults()
+//            }
+//        }
+        failure {
+            script {
+                artifacts.deletePublishedArtifacts()
+            }
+        }
+        success {
+            script {
+                when.any([is.pushToMaster(), is.pushToHotfixBranch()]) {
+                    release.createRelease(env.BRANCH_NAME)
+                    spinnaker.sendWebhook()
+                }
+                when(is.pushToHotfixBranch()) {
+                    release.createMergeRequestFromHotfix(env.BRANCH_NAME)
+                }
+                artifacts.printPublishedArtifacts()
+            }
+        }
+    }
+}

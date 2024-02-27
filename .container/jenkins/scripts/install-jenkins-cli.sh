@@ -1,0 +1,1 @@
+curl -k http://localhost:8080/jnlpJars/jenkins-cli.jar --output /var/jenkins_home/jenkins-cli.jar

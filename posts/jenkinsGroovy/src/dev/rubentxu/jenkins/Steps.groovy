@@ -15,7 +15,7 @@ abstract class Steps implements ISteps {
         this.steps = pipeline.getSteps()
         this.logger = pipeline.getLogger()
 
-        initialize(pipeline.getConfigClient())
+        configure(pipeline.getConfigClient())
     }
 
 }

@@ -1,0 +1,108 @@
+jenkins:
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: GITLAB_TOKEN
+            value: "${CLOUDBEES_CI_BOT_PERSONAL_TOKEN_GITLAB_TOKEN}"
+
+unclassified:
+  location:
+    adminAddress: "cicd@rubentxu.dev"
+    url: "https://localhost:8080/desarrollo-master"
+
+  globalDefaultFlowDurabilityLevel:
+    durabilityHint: PERFORMANCE_OPTIMIZED
+  globalConfigFiles:
+    configs:
+      - globalMavenSettings:
+          comment: "Global settings"
+          content: |-
+            <?xml version="1.0" encoding="UTF-8"?>
+            <settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+                xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <profiles>
+                <profile>
+                  <repositories>
+                    <repository>
+                      <snapshots>
+                        <enabled>false</enabled>
+                      </snapshots>
+                      <id>central</id>
+                      <name>virtual-maven</name>
+                      <url>https://repository-maven-changeit</url>
+                    </repository>
+                    <repository>
+                      <snapshots />
+                      <id>snapshots</id>
+                      <name>virtual-maven</name>
+                      <url>https://repository-maven-changeit</url>
+                    </repository>
+                  </repositories>
+                  <pluginRepositories>
+                    <pluginRepository>
+                      <snapshots>
+                        <enabled>false</enabled>
+                      </snapshots>
+                      <id>central</id>
+                      <name>virtual-maven</name>
+                      <url>https://repository-maven-changeit</url>
+                    </pluginRepository>
+                    <pluginRepository>
+                      <snapshots />
+                      <id>snapshots</id>
+                      <name>virtual-maven</name>
+                      <url>https://repository-maven-changeit</url>
+                    </pluginRepository>
+                  </pluginRepositories>
+                  <id>artifactory</id>
+                </profile>
+              </profiles>
+              <activeProfiles>
+                <activeProfile>artifactory</activeProfile>
+              </activeProfiles>
+            </settings>
+          id: "maven-settings"
+          isReplaceAll: true
+          name: "maven-settings"
+          providerId: "org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig"
+          serverCredentialMappings:
+            - credentialsId: "userpass-repository"
+              serverId: "central"
+            - credentialsId: "userpass-repository"
+              serverId: "snapshots"
+      - npm:
+          comment: "Npm user config"
+          content: |-
+            registry=https://repository-maven-changeit/api/npm/virtual-npm/
+            //repository-maven-changeit/api/npm/virtual-npm/:_authToken=${CLOUDBEES_NPMRC_CONTENT:-NA}
+          id: "npm-conf"
+          name: "npmrc"
+          providerId: "jenkins.plugins.nodejs.configfiles.NPMConfig"
+          registries:
+            - credentialsId: "cloudbees-ci-bot-userpass-artifactory"
+              hasScopes: false
+              url: "https://repository-maven-changeit/api/npm/virtual-npm/"
+      - npm:
+          comment: "Npm user config"
+          content: |-
+            registry=https://repository-maven-changeit/api/npm/virtual-npm/
+            //repository-maven-changeit/api/npm/virtual-npm/:_authToken=eyJ2ZXIiOiIyIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYiLCJraWQiOiJGdDBxT2hnRC01NjYtdEdycjd5RjIwUWlGeTJvMjJNUFNtVDNsTUxKdkpZIn0.eyJzdWIiOiJqZnJ0QDAxZHR2ZGV4ZjJxNXAzMGcweWdnZXYwdjQ1XC91c2Vyc1wvY2xvdWRiZWVzLWNpLWJvdC1kZXNhIiwic2NwIjoibWVtYmVyLW9mLWdyb3VwczoqIGFwaToqIiwiYXVkIjoiamZydEAwMWR0dmRleGYycTVwMzBnMHlnZ2V2MHY0NSIsImlzcyI6ImpmcnRAMDFkdHZkZXhmMnE1cDMwZzB5Z2dldjB2NDVcL3VzZXJzXC9jbG91ZGJlZXMtY2ktYm90LWRlc2EiLCJpYXQiOjE2MjAyOTM4ODcsImp0aSI6ImUyOTFiMDU2LWU2OWYtNDhkMC04ODRlLTE0ZDUyM2VkYmJiYiJ9.K6gJQRfF6ybKape_CIVCnTPZ28zAl4BBSw_MKURJDppDl-nyyQFIE1M-ySIgncpiICH3rsnFVX2njCGXIjZgl9Wh-OIHdXj30eTrpT23W1idxHW-4Garcbx1QCYj8CrQqCZxekKdK3os4BJTma40vvXU1dnOz9z3oHnECyxd8ZEVZIQ5R8Kx-K4AnNZdkReyaL7g4j1i0gW1TrDhuiYkeNiZ35qWbcLPZGqIs1YW0-cb4H_ubk5FpiMRGI-BeppLocw6O1HGAap8_O5q8QePrEESjkxUPLQKWv8z6BHGdvEYAt7LUbzQfRSXlaAZaAQCJx6Qp1fWPyXs7lk0aupoTg
+          id: "npm-conf"
+          name: "npmrc"
+          providerId: "jenkins.plugins.nodejs.configfiles.NPMConfig"
+          registries:
+            - credentialsId: "cloudbees-ci-bot-userpass-artifactory"
+              hasScopes: false
+              url: "https://repository-maven-changeit/api/npm/virtual-npm/"
+  shell:
+    shell: "/bin/bash"
+  sonarGlobalConfiguration:
+    buildWrapperEnabled: false
+    installations:
+      - credentialsId: "cloudbees-ci-pruebas-bot-token-sonarqube"
+        name: "SONARQUBE_UTILS"
+        serverUrl: "https://sonarqube.gcp.rubentxu.dev"
+        triggers:
+          skipScmCause: false
+          skipUpstreamCause: false
+        webhookSecretId: "system-pruebas-token-webhook-sonarqube"

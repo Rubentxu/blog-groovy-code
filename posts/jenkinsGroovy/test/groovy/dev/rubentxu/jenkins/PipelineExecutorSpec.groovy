@@ -32,7 +32,7 @@ class PipelineExecutorSpec extends TestContext {
         pipeline.initializeServices(configClient)
 
         then:
-        1 * serviceMock.initialize(configClient)
+        1 * serviceMock.configure(configClient)
     }
 
     def "test addSkipStage and getSkipStages"() {

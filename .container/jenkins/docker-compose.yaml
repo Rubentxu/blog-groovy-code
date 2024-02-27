@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  jenkins-testing:
+    image: custom/jenkins:1.0
+    build:
+      dockerfile: Dockerfile
+      context: ./container-context
+    privileged: true
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.PluginManager.workDir=/opt/jenkins/plugins
+      - CASC_JENKINS_CONFIG=/usr/share/jenkins/ref/casc
+      - SECRETS_FILE=/var/jenkins_home/.env
+      - NPM_CONFIG_STRICT_SSL=false
+      - EXCLUDE_MODULES=integration-tests,unit-tests-fixtures
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - jenkins-data:/opt/jenkins
+      - ./build/repositories:/opt/repositories
+      - ./build/cache:/opt/cache
+      - ./share:/usr/share/jenkins/ref
+      - ./scripts:/var/jenkins_home/init.groovy.d
+      - ./secrets_file:/var/jenkins_home/.env
+
+
+volumes:
+  jenkins-data:

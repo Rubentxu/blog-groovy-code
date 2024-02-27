@@ -7,7 +7,7 @@ import dev.rubentxu.jenkins.interfaces.IPipelineContext
 import dev.rubentxu.jenkins.tools.interfaces.IGradleTool
 import dev.rubentxu.jenkins.vo.resources.ArtifactRepository
 import dev.rubentxu.jenkins.vo.resources.gradle.GradleArtifact
-import dev.rubentxu.jenkins.vo.resources.gradle.GradleFileDefinition
+import dev.rubentxu.jenkins.vo.resources.gradle.GradleIProjectDefinitionFile
 
 import java.nio.file.Paths
 
@@ -24,9 +24,21 @@ class GradleTool extends Steps implements IGradleTool {
     }
 
     @Override
+    void resolveDependencies() {
+        execute('assemble')
+
+    }
+
+    @Override
+    boolean test() {
+        String result = execute('test', ['-i'])
+        return result.contains('BUILD SUCCESSFUL')
+    }
+
+    @Override
     GradleArtifact build(List<String> options) {
         execute('clean build', ['-x', 'test'] + options)
-        GradleFileDefinition definition = readFileDefinition()
+        GradleIProjectDefinitionFile definition = readFileDefinition()
         String artifactRef = "${definition.group.replaceAll('\\.', '/')}/${definition.name}/${definition.version}"
 
         new GradleArtifact(
@@ -54,9 +66,9 @@ class GradleTool extends Steps implements IGradleTool {
     }
 
     @Override
-    GradleFileDefinition readFileDefinition() {
+    GradleIProjectDefinitionFile readFileDefinition() {
         def gradleProperties = steps.readProperties(file: this.gradlePropertiesFile)
-        return new GradleFileDefinition(
+        return new GradleIProjectDefinitionFile(
                 id: "${gradleProperties.group}:${gradleProperties.name}",
                 name: gradleProperties.name,
                 group: gradleProperties.group,
@@ -66,7 +78,7 @@ class GradleTool extends Steps implements IGradleTool {
     }
 
     @Override
-    GradleFileDefinition writeVersion(String overrideVersion) {
+    GradleIProjectDefinitionFile writeVersion(String overrideVersion) {
         if (steps.sh(returnStatus: true, script: "gradle tasks --all | grep -i updateVersion") == 0) {
             execute('updateVersion', ["-PnewVersion='${overrideVersion}'"])
         } else {
@@ -99,12 +111,17 @@ class GradleTool extends Steps implements IGradleTool {
 
     @NonCPS
     @Override
-    void initialize(IConfigClient configClient) {
+    void configure(IConfigClient configClient) {
         this.credentialsId = configClient.required('gradle.repository.credentialsId', String.class)
         this.buildGradlePath = configClient.optional('gradle.buildGradlePath', 'build.gradle')
         this.gradlePropertiesFile = configClient.optional('gradle.gradlePropertiesPath', 'gradle.properties')
         this.debugMode = configClient.optional('gradle.debug', false)
         this.useWrapper = configClient.optional('gradle.useWrapper', false)
+
+    }
+
+    @Override
+    void initialize() {
 
     }
 }

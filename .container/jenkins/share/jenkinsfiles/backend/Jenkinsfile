@@ -1,0 +1,39 @@
+@Library([
+        'jenkinsGroovy-lib',
+]) _
+
+
+Map<String, Object> mavenProperties = [
+        'maven.settingsPath'  : '/var/jenkins_home/.m2/settings.xml',
+        'maven.pomXmlPath'    : 'pom.xml',
+        'maven.settingsFileId': 'settingsFileId',
+        'maven.debug'         : false,
+        'maven.publishGoal'   : 'deploy',
+        'maven.args'          : ''
+]
+
+cdi.initialize(this, mavenProperties)
+
+pipeline {
+    agent any
+    options {
+        timeout(time: 40, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        disableResume()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        ansiColor('xterm')
+        skipDefaultCheckout false
+        durabilityHint('PERFORMANCE_OPTIMIZED')
+    }
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    maven.resolveDependencies()
+                    maven.build()
+                }
+            }
+        }
+    }
+
+}
