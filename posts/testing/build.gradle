@@ -1,0 +1,50 @@
+plugins {
+    id 'groovy'
+    id 'java-test-fixtures'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+    maven {
+        url 'https://repo.jenkins-ci.org/releases/'
+    }
+}
+
+sourceSets {
+    testFixtures {
+        groovy.srcDirs = ['testFixtures/groovy']
+        resources.srcDirs = ['testFixtures/resources']
+    }
+}
+
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:2.5.23'
+    implementation 'com.cloudbees:groovy-cps:1.31'
+
+    testFixturesApi 'org.spockframework:spock-core:2.2-M1-groovy-2.5'
+    testFixturesApi 'org.spockframework:spock-junit4:2.2-M1-groovy-2.5'
+    testFixturesApi 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+
+    testFixturesApi 'org.codehaus.groovy:groovy-all:2.5.23'
+    testFixturesImplementation 'com.cloudbees:groovy-cps:1.31'
+
+    testFixturesImplementation 'org.yaml:snakeyaml:2.2'
+    testFixturesImplementation 'com.opencsv:opencsv:5.5.2'
+}
+
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    testLogging {
+        //showStandardStreams true
+        exceptionFormat 'FULL'
+        events 'skipped', 'failed'
+    }
+}

@@ -1,0 +1,45 @@
+apiVersion: validation.giss.es/v1
+kind: ValidationPolicy
+metadata:
+  name: project-descriptor-validation-policy
+spec:
+  rules:
+    - name: validate-min-replicas
+      match:
+        kinds:
+          - Deployment
+      validate:
+        fields:
+          replicas: "spec.replicas"
+        predicate: "replicas >= 4"
+        message: "El número mínimo de réplicas debe ser 2"
+
+    - name: validate-cpu-limit
+      match:
+        kinds:
+          - Deployment
+      validate:
+        fields:
+          cpuLimit: "spec.template.spec.containers[0].resources.limits.cpu"
+        predicate: "cpuLimit == '600m'"
+        message: "Los recursos de límite para CPU deben ser 600m"
+
+    - name: validate-memory-request
+      match:
+        kinds:
+          - Deployment
+      validate:
+        fields:
+          memoryRequest: "spec.template.spec.containers[0].resources.requests.memory"
+        predicate: "memoryRequest >= '512Mi'"
+        message: "Los recursos de solicitud para memoria deben ser al menos 512Mi"
+
+    - name: validate-config-env-var
+      match:
+        kinds:
+          - Deployment
+      validate:
+        fields:
+          configEnvVar: "spec.template.spec.containers[0].env.find{ it.name == 'CONFIG_FILE' }.value"
+        predicate: "configEnvVar == '/etc/peets/config.yml'"
+        message: "La variable de entorno de configuración debe ser '/etc/peets/config.yml'"

@@ -1,0 +1,111 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "peets-deployment"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "peets"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "peets"
+        }
+      },
+      "spec": {
+        "affinity": {
+          "podAntiAffinity": {
+            "preferredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "podAffinityTerm": {
+                  "labelSelector": {
+                    "matchExpressions": [
+                      {
+                        "key": "app",
+                        "operator": "In",
+                        "values": [
+                          "peets"
+                        ]
+                      }
+                    ]
+                  },
+                  "topologyKey": "kubernetes.io/hostname"
+                },
+                "weight": 100
+              }
+            ]
+          }
+        },
+        "containers": [
+          {
+            "name": "peets",
+            "image": "mi-repositorio/peets:latest",
+            "ports": [
+              {
+                "containerPort": 8080
+              }
+            ],
+            "env": [
+              {
+                "name": "SPRING_PROFILES_ACTIVE",
+                "value": "production"
+              },
+              {
+                "name": "CONFIG_FILE",
+                "value": "/etc/peets/config.yml"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "100m",
+                "memory": "128Mi"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "peets-config",
+                "mountPath": "/etc/peets",
+                "readOnly": true
+              }
+            ],
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/actuator/health",
+                "port": 8080
+              },
+              "initialDelaySeconds": 30,
+              "periodSeconds": 10,
+              "timeoutSeconds": 1
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/actuator/health",
+                "port": 8080
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 5,
+              "timeoutSeconds": 1
+            }
+          }
+        ],
+        "volumes": [
+          {
+            "name": "peets-config",
+            "configMap": {
+              "name": "peets-configmap"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

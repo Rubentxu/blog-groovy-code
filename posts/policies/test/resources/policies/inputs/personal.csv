@@ -1,0 +1,6 @@
+id,nombre,apellido,email,telefono,edad,departamento,salario
+1,Ana,García,ana.garcia@ejemplo.com,122345678,35,Marketing,60000
+2,Pedro,Pérez,pedro.perez@ejemplo.com,231456789,28,Ventas,45000
+3,Marta,Fernández,marta.fernandez@ejemplo.com,324567890,42,Finanzas,80000
+4,Juan,Rodríguez,juan.rodriguez@ejemplo.com,425678901,24,Finanzas,34000
+5,Lucía,Sánchez,lucia.sanchez@ejemplo.com,256789012,31,Marketing,55000

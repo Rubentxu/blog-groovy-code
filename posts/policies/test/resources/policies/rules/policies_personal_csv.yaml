@@ -1,0 +1,85 @@
+apiVersion: validation.rubentxu.dev/v1
+kind: ValidationPolicy
+metadata:
+  name: personal-validation-policy
+spec:
+  rules:
+    - name: validate-id
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          id: "spec.rows[0].id"
+        predicate: "id > 0"
+        message: "El ID debe ser mayor que 0"
+
+    - name: validate-nombre
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          nombres: spec.rows*.nombre
+        predicate: nombres.every { it != '' }
+        message: "El nombre no puede estar vacío"
+
+    - name: validate-apellido
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          apellidos: spec.rows*.apellido
+        predicate: apellidos.every { it != '' }
+        message: "El apellido no puede estar vacío"
+
+    - name: validate-email
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          emails: spec.rows*.email
+        predicate: emails.every { it =~ /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/ }
+        message: "El correo electrónico no es válido"
+
+    - name: validate-telefono
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          telefonos: spec.rows*.telefono
+        predicate: telefonos.every { it =~ /^[0-9]{9}$/ }
+        message: "Los números de teléfono deben tener 9 dígitos"
+
+    - name: validate-edad
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          edades: spec.rows*.edad
+        predicate: edades.every { it >= '18' }
+        message: "La edad debe ser mayor o igual a 18"
+
+    - name: validate-departamento
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          departamentos: spec.rows*.departamento
+        predicate: departamentos.every { it != '' }
+        message: "El campo departamento no puede estar vacío"
+
+    - name: validate-salario
+      match:
+        kinds:
+          - CSVResource
+      validate:
+        fields:
+          salarios: spec.rows*.salario
+        predicate: salarios.every { (it as Integer) > 0 }
+        message: "Los salarios deben ser mayores que 0"

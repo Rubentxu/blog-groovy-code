@@ -8,5 +8,7 @@ pluginManagement {
     }
 }
 
-include ":posts:jenkinsGroovy"
+include ":posts:core"
+include ":posts:policies"
+include ":posts:testing"
 
